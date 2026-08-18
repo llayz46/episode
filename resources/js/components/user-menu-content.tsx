@@ -3,6 +3,7 @@ import { LogOut, Settings } from 'lucide-react';
 import {
     MenuGroup,
     MenuGroupLabel,
+    MenuItem,
     MenuLinkItem,
     MenuSeparator,
 } from '@/components/ui/menu';
@@ -22,15 +23,18 @@ export function UserMenuContent({ user }: Props) {
     const handleLogout = () => {
         cleanup();
         router.flushAll();
+        router.post(logout());
     };
 
     return (
         <>
-            <MenuGroupLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <UserInfo user={user} showEmail={true} />
-                </div>
-            </MenuGroupLabel>
+            <MenuGroup>
+                <MenuGroupLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                        <UserInfo user={user} showEmail={true} />
+                    </div>
+                </MenuGroupLabel>
+            </MenuGroup>
             <MenuSeparator />
             <MenuGroup>
                 <MenuLinkItem
@@ -41,19 +45,14 @@ export function UserMenuContent({ user }: Props) {
                 </MenuLinkItem>
             </MenuGroup>
             <MenuSeparator />
-            <MenuLinkItem
-                render={
-                    <Link
-                        as="button"
-                        data-test="logout-button"
-                        href={logout()}
-                        onClick={handleLogout}
-                    />
-                }
+            <MenuItem
+                closeOnClick
+                data-test="logout-button"
+                onClick={handleLogout}
             >
                 <LogOut />
                 Se déconnecter
-            </MenuLinkItem>
+            </MenuItem>
         </>
     );
 }
