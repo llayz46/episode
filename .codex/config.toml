@@ -1,3 +1,6 @@
 [mcp_servers.laravel-boost]
 command = "wsl.exe"
 args = ["/opt/php-8.3.31/bin/php", "/home/layz/projects/episode/artisan", "boost:mcp"]
+
+[mcp_servers.laravel-boost.tools.search-docs]
+approval_mode = "approve"

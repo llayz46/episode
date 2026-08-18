@@ -5,17 +5,7 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
+import { Menu as UserMenu, MenuPopup, MenuTrigger } from '@/components/ui/menu';
 import {
     Sheet,
     SheetContent,
@@ -41,7 +31,7 @@ type Props = {
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Tableau de bord',
         href: dashboard(),
         icon: LayoutGrid,
     },
@@ -49,7 +39,7 @@ const mainNavItems: NavItem[] = [
 
 const rightNavItems: NavItem[] = [
     {
-        title: 'Repository',
+        title: 'Dépôt GitHub',
         href: 'https://github.com/laravel/react-starter-kit',
         icon: Folder,
     },
@@ -60,14 +50,11 @@ const rightNavItems: NavItem[] = [
     },
 ];
 
-const activeItemStyles =
-    'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
-
 export function AppHeader({ breadcrumbs = [] }: Props) {
     const page = usePage();
     const { auth } = page.props;
     const getInitials = useInitials();
-    const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+    const { whenCurrentUrl } = useCurrentUrl();
 
     return (
         <>
@@ -76,21 +63,23 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="mr-2 h-[34px] w-[34px]"
-                                >
-                                    <Menu className="h-5 w-5" />
-                                </Button>
+                            <SheetTrigger
+                                render={
+                                    <Button
+                                        className="mr-2"
+                                        size="icon"
+                                        variant="ghost"
+                                    />
+                                }
+                            >
+                                <Menu className="size-5" />
                             </SheetTrigger>
                             <SheetContent
                                 side="left"
                                 className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
                             >
                                 <SheetTitle className="sr-only">
-                                    Navigation menu
+                                    Menu de navigation
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
                                     <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
@@ -143,96 +132,88 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
-                        <NavigationMenu className="flex h-full items-stretch">
-                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {mainNavItems.map((item, index) => (
-                                    <NavigationMenuItem
-                                        key={index}
-                                        className="relative flex h-full items-center"
-                                    >
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                whenCurrentUrl(
-                                                    item.href,
-                                                    activeItemStyles,
-                                                ),
-                                                'h-9 cursor-pointer px-3',
-                                            )}
-                                        >
-                                            {item.icon && (
-                                                <item.icon className="mr-2 h-4 w-4" />
-                                            )}
-                                            {item.title}
-                                        </Link>
-                                        {isCurrentUrl(item.href) && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
-                                        )}
-                                    </NavigationMenuItem>
-                                ))}
-                            </NavigationMenuList>
-                        </NavigationMenu>
-                    </div>
-
-                    <div className="ml-auto flex items-center space-x-2">
-                        <div className="relative flex items-center space-x-1">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="group h-9 w-9 cursor-pointer"
+                    <nav
+                        aria-label="Navigation principale"
+                        className="ml-6 hidden h-full items-center gap-2 lg:flex"
+                    >
+                        {mainNavItems.map((item) => (
+                            <Link
+                                key={item.title}
+                                className={cn(
+                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+                                    whenCurrentUrl(
+                                        item.href,
+                                        'bg-accent text-foreground',
+                                    ),
+                                )}
+                                href={item.href}
                             >
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
+                                {item.icon && <item.icon className="size-4" />}
+                                {item.title}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    <div className="ml-auto flex items-center gap-2">
+                        <div className="relative flex items-center gap-1">
+                            <Button
+                                className="cursor-pointer"
+                                size="icon"
+                                variant="ghost"
+                            >
+                                <Search className="size-5" />
+                                <span className="sr-only">Rechercher</span>
                             </Button>
-                            <div className="ml-1 hidden gap-1 lg:flex">
+                            <div className="hidden gap-1 lg:flex">
                                 {rightNavItems.map((item) => (
                                     <Tooltip key={item.title}>
-                                        <TooltipTrigger>
-                                            <a
-                                                href={toUrl(item.href)}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                            >
-                                                <span className="sr-only">
-                                                    {item.title}
-                                                </span>
-                                                {item.icon && (
-                                                    <item.icon className="size-5 opacity-80 group-hover:opacity-100" />
-                                                )}
-                                            </a>
+                                        <TooltipTrigger
+                                            render={
+                                                <a
+                                                    aria-label={item.title}
+                                                    className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                                                    href={toUrl(item.href)}
+                                                    rel="noopener noreferrer"
+                                                    target="_blank"
+                                                />
+                                            }
+                                        >
+                                            {item.icon && (
+                                                <item.icon aria-hidden="true" />
+                                            )}
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{item.title}</p>
+                                            {item.title}
                                         </TooltipContent>
                                     </Tooltip>
                                 ))}
                             </div>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="size-10 rounded-full p-1"
-                                >
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage
-                                            src={auth.user?.avatar}
-                                            alt={auth.user?.name}
-                                        />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user?.name ?? '')}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
+                        <UserMenu>
+                            <MenuTrigger
+                                render={
+                                    <Button
+                                        className="size-10 rounded-full p-1"
+                                        variant="ghost"
+                                    />
+                                }
+                            >
+                                <Avatar className="size-8">
+                                    <AvatarImage
+                                        alt={auth.user?.name}
+                                        src={auth.user?.avatar}
+                                    />
+                                    <AvatarFallback>
+                                        {getInitials(auth.user?.name ?? '')}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </MenuTrigger>
+                            <MenuPopup align="end" className="w-56">
                                 {auth.user && (
                                     <UserMenuContent user={auth.user} />
                                 )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            </MenuPopup>
+                        </UserMenu>
                     </div>
                 </div>
             </div>

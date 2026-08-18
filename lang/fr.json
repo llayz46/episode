@@ -1,0 +1,15 @@
+{
+    "Password updated.": "Mot de passe mis à jour.",
+    "Profile updated.": "Profil mis à jour.",
+    "The provided password was incorrect.": "Le mot de passe renseigné est incorrect.",
+    "The provided two factor authentication code was invalid.": "Le code d’authentification à deux facteurs renseigné est invalide.",
+    "The provided two factor recovery code was invalid.": "Le code de récupération renseigné est invalide.",
+    "The :attribute must be at least :length characters.": "Le champ :attribute doit comporter au moins :length caractères.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character.": "Le champ :attribute doit comporter au moins :length caractères et contenir au moins une majuscule.",
+    "The :attribute must be at least :length characters and contain at least one number.": "Le champ :attribute doit comporter au moins :length caractères et contenir au moins un chiffre.",
+    "The :attribute must be at least :length characters and contain at least one special character.": "Le champ :attribute doit comporter au moins :length caractères et contenir au moins un caractère spécial.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character and one number.": "Le champ :attribute doit comporter au moins :length caractères, une majuscule et un chiffre.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character and one special character.": "Le champ :attribute doit comporter au moins :length caractères, une majuscule et un caractère spécial.",
+    "The :attribute must be at least :length characters and contain at least one uppercase character, one number, and one special character.": "Le champ :attribute doit comporter au moins :length caractères, une majuscule, un chiffre et un caractère spécial.",
+    "The :attribute must be at least :length characters and contain at least one special character and one number.": "Le champ :attribute doit comporter au moins :length caractères, un caractère spécial et un chiffre."
+}

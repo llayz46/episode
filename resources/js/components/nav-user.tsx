@@ -1,10 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { ChevronsUpDown } from 'lucide-react';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Menu, MenuPopup, MenuTrigger } from '@/components/ui/menu';
 import {
     SidebarMenu,
     SidebarMenuButton,
@@ -27,20 +23,21 @@ export function NavUser() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton
-                            size="lg"
-                            className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
-                            data-test="sidebar-menu-button"
-                        >
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
-                        </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                <Menu>
+                    <MenuTrigger
+                        render={
+                            <SidebarMenuButton
+                                className="text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
+                                size="lg"
+                            />
+                        }
+                    >
+                        <UserInfo user={auth.user} />
+                        <ChevronsUpDown className="ml-auto size-4" />
+                    </MenuTrigger>
+                    <MenuPopup
                         align="end"
+                        className="min-w-56 rounded-lg"
                         side={
                             isMobile
                                 ? 'bottom'
@@ -50,8 +47,8 @@ export function NavUser() {
                         }
                     >
                         <UserMenuContent user={auth.user} />
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    </MenuPopup>
+                </Menu>
             </SidebarMenuItem>
         </SidebarMenu>
     );

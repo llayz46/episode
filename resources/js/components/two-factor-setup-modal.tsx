@@ -1,5 +1,4 @@
 import { Form } from '@inertiajs/react';
-import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
@@ -12,11 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
+import { OTPField, OTPFieldInput } from '@/components/ui/otp-field';
 import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -104,7 +99,7 @@ function TwoFactorSetupStep({
                     <div className="relative flex w-full items-center justify-center">
                         <div className="absolute inset-0 top-1/2 h-px w-full bg-border" />
                         <span className="relative bg-card px-2 py-1">
-                            or, enter the code manually
+                            ou saisissez le code manuellement
                         </span>
                     </div>
 
@@ -174,27 +169,29 @@ function TwoFactorVerificationStep({
                         className="relative w-full space-y-3"
                     >
                         <div className="flex w-full flex-col items-center space-y-3 py-2">
-                            <InputOTP
-                                id="otp"
-                                name="code"
-                                maxLength={OTP_MAX_LENGTH}
-                                onChange={setCode}
+                            <OTPField
+                                aria-label="Code d’authentification"
                                 disabled={processing}
-                                pattern={REGEXP_ONLY_DIGITS}
-                                autoFocus
+                                id="otp"
+                                length={OTP_MAX_LENGTH}
+                                name="code"
+                                onValueChange={setCode}
                             >
-                                <InputOTPGroup>
-                                    {Array.from(
-                                        { length: OTP_MAX_LENGTH },
-                                        (_, index) => (
-                                            <InputOTPSlot
-                                                key={index}
-                                                index={index}
-                                            />
-                                        ),
-                                    )}
-                                </InputOTPGroup>
-                            </InputOTP>
+                                {Array.from(
+                                    { length: OTP_MAX_LENGTH },
+                                    (_, index) => (
+                                        <OTPFieldInput
+                                            key={index}
+                                            aria-label={
+                                                index === 0
+                                                    ? undefined
+                                                    : `Caractère ${index + 1} sur ${OTP_MAX_LENGTH}`
+                                            }
+                                            autoFocus={index === 0}
+                                        />
+                                    ),
+                                )}
+                            </OTPField>
                             <InputError
                                 message={
                                     errors?.confirmTwoFactorAuthentication?.code
@@ -210,7 +207,7 @@ function TwoFactorVerificationStep({
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                Back
+                                Retour
                             </Button>
                             <Button
                                 type="submit"
@@ -219,7 +216,7 @@ function TwoFactorVerificationStep({
                                     processing || code.length < OTP_MAX_LENGTH
                                 }
                             >
-                                Confirm
+                                Confirmer
                             </Button>
                         </div>
                     </div>
@@ -262,27 +259,27 @@ export default function TwoFactorSetupModal({
     }>(() => {
         if (twoFactorEnabled) {
             return {
-                title: 'Two-factor authentication enabled',
+                title: 'Authentification à deux facteurs activée',
                 description:
-                    'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-                buttonText: 'Close',
+                    'L’authentification à deux facteurs est activée. Scannez le QR code ou saisissez la clé dans votre application d’authentification.',
+                buttonText: 'Fermer',
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
+                title: 'Vérifier le code d’authentification',
                 description:
-                    'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                    'Saisissez le code à 6 chiffres de votre application d’authentification',
+                buttonText: 'Continuer',
             };
         }
 
         return {
-            title: 'Enable two-factor authentication',
+            title: 'Activer l’authentification à deux facteurs',
             description:
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            buttonText: 'Continue',
+                'Pour terminer l’activation, scannez le QR code ou saisissez la clé dans votre application d’authentification',
+            buttonText: 'Continuer',
         };
     }, [twoFactorEnabled, showVerificationStep]);
 
