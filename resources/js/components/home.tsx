@@ -83,7 +83,7 @@ export function Home() {
                     <section className="relative min-h-screen overflow-hidden">
                         <section
                             aria-labelledby="featured-title"
-                            className="relative min-h-screen overflow-hidden bg-neutral-950 text-white"
+                            className="dark relative min-h-screen overflow-hidden bg-neutral-950 text-white"
                         >
                             <img
                                 alt="Paysage montagneux sous une lumière froide"
@@ -120,21 +120,14 @@ export function Home() {
                                         </p>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
-                                        <Button
-                                            className="rounded-full bg-white px-6 text-black hover:bg-white/90"
-                                            size="lg"
-                                        >
+                                        <Button>
                                             <Play
                                                 aria-hidden="true"
                                                 className="fill-current"
                                             />
                                             Voir le suivi
                                         </Button>
-                                        <Button
-                                            className="rounded-full border-white/15 bg-white/10 px-6 text-white hover:bg-white/20"
-                                            size="lg"
-                                            variant="outline"
-                                        >
+                                        <Button variant="secondary">
                                             <Bell aria-hidden="true" />
                                             Me prévenir
                                         </Button>
