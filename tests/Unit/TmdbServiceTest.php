@@ -67,8 +67,15 @@ it('récupère un film', function (): void {
     ]);
 });
 
-it('récupère une série et l’une de ses saisons', function (): void {
+it('récupère une série et l’une de ses saisons et un épisode', function (): void {
     Http::fake([
+        'https://api.themoviedb.org/3/tv/125988/season/3/episode/2*' => Http::response([
+            'id' => 7173958,
+            'season_number' => 3,
+            'episode_number' => 2,
+            'name' => 'It\'s All Good',
+            'air_date' => '2026-07-09'
+        ]),
         'https://api.themoviedb.org/3/tv/125988/season/3*' => Http::response([
             'id' => 305133,
             'season_number' => 3,
@@ -82,9 +89,11 @@ it('récupère une série et l’une de ses saisons', function (): void {
 
     $series = app(TmdbService::class)->series(125988);
     $season = app(TmdbService::class)->season(125988, 3);
+    $episode = app(TmdbService::class)->episode(125988, 3, 2);
 
     expect($series['name'])->toBe('Silo')
-        ->and($season['season_number'])->toBe(3);
+        ->and($season['season_number'])->toBe(3)
+        ->and($episode['id'])->toBe(7173958);
 });
 
 it('lève l’exception de réponse TMDB lorsqu’une réponse échoue', function (): void {

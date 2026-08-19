@@ -78,6 +78,16 @@ final class TmdbService
     {
         return $this->get("tv/{$seriesTmdbId}/season/{$seasonNumber}");
     }
+    
+    /**
+     * Récupère un épisode précis depuis TMDB.
+     *
+     * @return array<string, mixed>
+     */
+    public function episode(int $seriesTmdbId, int $seasonNumber, int $episodeNumber): array
+    {
+        return $this->get("tv/{$seriesTmdbId}/season/{$seasonNumber}/episode/{$episodeNumber}");
+    }
 
     /**
      * @param  array<string, int|string>  $query
