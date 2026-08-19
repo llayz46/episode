@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Bell, ChevronRight, CircleCheck, Play, Sparkles } from 'lucide-react';
+import { Bell, ChevronRight, CircleCheck, Play } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
 import { MediaDrawer } from '@/components/media-drawer';
@@ -160,13 +160,6 @@ export function Home() {
                             <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
                                 <AppLogo className="text-white" />
                                 <div className="mt-auto flex max-w-xl flex-col gap-6 pb-28 sm:pb-36">
-                                    <div className="flex items-center gap-2 text-sm text-white/65">
-                                        <Sparkles
-                                            aria-hidden="true"
-                                            className="size-4"
-                                        />
-                                        À regarder plus tard
-                                    </div>
                                     <div className="flex flex-col gap-3">
                                         <p className="text-sm font-medium tracking-[0.18em] text-white/60 uppercase">
                                             Apple TV+ · 2025
