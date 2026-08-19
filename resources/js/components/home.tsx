@@ -3,6 +3,7 @@ import {
     Bell,
     CalendarDays,
     ChevronRight,
+    CircleCheck,
     CircleUserRound,
     Compass,
     Home as HomeIcon,
@@ -11,37 +12,84 @@ import {
     Search,
     Sparkles,
 } from 'lucide-react';
+import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
+import { MediaDrawer  } from '@/components/media-drawer';
+import type {MediaDrawerItem} from '@/components/media-drawer';
 import { useSearchCommand } from '@/components/search-command';
 import { Button } from '@/components/ui/button';
+import {
+    Progress,
+    ProgressIndicator,
+    ProgressTrack,
+} from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
-const bingeReady = [
+const featuredMedia: MediaDrawerItem = {
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90',
+    kind: 'series',
+    nextEpisode: 'Prochain épisode · Vendredi 22 août',
+    platform: 'Apple TV+',
+    releasedEpisodes: 6,
+    seasonComplete: '12 septembre',
+    status: 'airing',
+    subtitle: 'Saison 3',
+    title: 'Silo',
+    totalEpisodes: 10,
+    year: '2025',
+};
+
+const bingeReady: MediaDrawerItem[] = [
     {
         image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=700&q=80',
+        kind: 'series',
+        platform: 'Apple TV+',
+        status: 'binge-ready',
         title: 'Severance',
-        subtitle: 'Saison 2',
+        subtitle: 'Saison 2 · 10 épisodes',
+        totalEpisodes: 10,
+        year: '2025',
     },
     {
         image: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=700&q=80',
+        kind: 'series',
+        platform: 'Max',
+        status: 'binge-ready',
         title: 'The Last of Us',
-        subtitle: 'Saison 2',
+        subtitle: 'Saison 2 · 7 épisodes',
+        totalEpisodes: 7,
+        year: '2025',
     },
     {
         image: 'https://images.unsplash.com/photo-1586899028174-e7098604235b?auto=format&fit=crop&w=700&q=80',
+        kind: 'series',
+        platform: 'Disney+',
+        status: 'binge-ready',
         title: 'Andor',
-        subtitle: 'Saison 2',
+        subtitle: 'Saison 2 · 12 épisodes',
+        totalEpisodes: 12,
+        year: '2025',
     },
     {
         image: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=700&q=80',
+        kind: 'series',
+        platform: 'Disney+',
+        status: 'binge-ready',
         title: 'The Bear',
-        subtitle: 'Saison 4',
+        subtitle: 'Saison 4 · 10 épisodes',
+        totalEpisodes: 10,
+        year: '2025',
     },
     {
         image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=700&q=80',
+        kind: 'series',
+        platform: 'Disney+',
+        status: 'binge-ready',
         title: 'Shōgun',
-        subtitle: 'Saison 1',
+        subtitle: 'Saison 1 · 10 épisodes',
+        totalEpisodes: 10,
+        year: '2024',
     },
 ];
 
@@ -50,20 +98,53 @@ const upcomingReleases = [
         date: 'Ven. 22',
         title: 'Silo',
         episode: 'S3E07',
-        image: bingeReady[0].image,
+        image: featuredMedia.image,
+        media: featuredMedia,
     },
     {
         date: 'Lun. 25',
         title: 'Alien: Earth',
         episode: 'S1E04',
         image: bingeReady[1].image,
+        media: {
+            image: bingeReady[1].image,
+            kind: 'series' as const,
+            nextEpisode: 'Prochain épisode · Lundi 25 août',
+            platform: 'Disney+',
+            releasedEpisodes: 4,
+            seasonComplete: '22 septembre',
+            status: 'airing' as const,
+            subtitle: 'Saison 1',
+            title: 'Alien: Earth',
+            totalEpisodes: 8,
+            year: '2025',
+        },
     },
     {
         date: 'Jeu. 28',
         title: 'The Thursday Murder Club',
         episode: 'Film · VOD',
         image: bingeReady[2].image,
+        media: {
+            image: bingeReady[2].image,
+            kind: 'film' as const,
+            platform: 'Netflix',
+            status: 'binge-ready' as const,
+            subtitle: 'Film · Disponible en VOD',
+            title: 'The Thursday Murder Club',
+            year: '2025',
+        },
     },
+];
+
+const weekDays = [
+    { day: 'Ven', date: '22', hasRelease: true },
+    { day: 'Sam', date: '23', hasRelease: false },
+    { day: 'Dim', date: '24', hasRelease: false },
+    { day: 'Lun', date: '25', hasRelease: true },
+    { day: 'Mar', date: '26', hasRelease: false },
+    { day: 'Mer', date: '27', hasRelease: false },
+    { day: 'Jeu', date: '28', hasRelease: true },
 ];
 
 const navigationItems = [
@@ -77,6 +158,9 @@ const navigationItems = [
 
 export function Home() {
     const { openSearchCommand } = useSearchCommand();
+    const [selectedMedia, setSelectedMedia] = useState<MediaDrawerItem | null>(
+        null,
+    );
 
     return (
         <>
@@ -123,7 +207,11 @@ export function Home() {
                                         </p>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
-                                        <Button>
+                                        <Button
+                                            onClick={() =>
+                                                setSelectedMedia(featuredMedia)
+                                            }
+                                        >
                                             <Play
                                                 aria-hidden="true"
                                                 className="fill-current"
@@ -138,38 +226,30 @@ export function Home() {
                                 </div>
                                 <div className="absolute right-5 bottom-5 left-5 flex gap-3 overflow-x-auto sm:right-8 sm:bottom-8 sm:left-auto sm:w-[34rem] lg:right-12 lg:bottom-10">
                                     {[
-                                        {
-                                            image: bingeReady[3].image,
-                                            subtitle: 'Saison complète',
-                                            title: 'The Bear',
-                                        },
-                                        {
-                                            image: bingeReady[0].image,
-                                            subtitle: 'À reprendre · E04',
-                                            title: 'Severance',
-                                        },
-                                        {
-                                            image: bingeReady[2].image,
-                                            subtitle: 'Saison 2',
-                                            title: 'Andor',
-                                        },
+                                        bingeReady[3],
+                                        bingeReady[0],
+                                        bingeReady[2],
                                     ].map((show) => (
-                                        <article
-                                            className="w-36 shrink-0 rounded-2xl border border-white/10 bg-black/55 p-2 text-white backdrop-blur-xl"
+                                        <button
+                                            className="w-36 shrink-0 rounded-2xl border border-white/10 bg-black/55 p-2 text-left text-white backdrop-blur-xl transition hover:bg-black/70"
                                             key={show.title}
+                                            onClick={() =>
+                                                setSelectedMedia(show)
+                                            }
+                                            type="button"
                                         >
                                             <img
                                                 alt={`Poster de ${show.title}`}
                                                 className="aspect-[1.35] w-full rounded-xl object-cover"
                                                 src={show.image}
                                             />
-                                            <h2 className="mt-2 truncate text-sm font-medium">
+                                            <span className="mt-2 block truncate text-sm font-medium">
                                                 {show.title}
-                                            </h2>
-                                            <p className="truncate text-xs text-white/55">
+                                            </span>
+                                            <span className="block truncate text-xs text-white/55">
                                                 {show.subtitle}
-                                            </p>
-                                        </article>
+                                            </span>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -194,39 +274,42 @@ export function Home() {
                                             Prêtes à binge
                                         </h2>
                                     </div>
-                                    <Button
-                                        className="rounded-full"
-                                        size="sm"
-                                        variant="ghost"
-                                    >
+                                    <Button size="sm" variant="ghost">
                                         Tout voir
                                         <ChevronRight aria-hidden="true" />
                                     </Button>
                                 </div>
                                 <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
                                     {bingeReady.map((show) => (
-                                        <article
-                                            className="group w-36 shrink-0 snap-start sm:w-44"
+                                        <button
+                                            className="w-36 shrink-0 snap-start text-left sm:w-44"
                                             key={show.title}
+                                            onClick={() =>
+                                                setSelectedMedia(show)
+                                            }
+                                            type="button"
                                         >
-                                            <div className="relative aspect-[2/3] overflow-hidden rounded-2xl bg-muted">
+                                            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-muted shadow-sm">
                                                 <img
                                                     alt={`Poster de ${show.title}`}
-                                                    className="size-full object-cover transition duration-500 group-hover:scale-105"
+                                                    className="size-full object-cover transition duration-500 hover:scale-105"
                                                     src={show.image}
                                                 />
-                                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/80 to-transparent" />
-                                                <span className="absolute right-2 bottom-2 rounded-full bg-white/90 px-2.5 py-1 text-[0.68rem] font-semibold text-black backdrop-blur-sm">
-                                                    Complète
-                                                </span>
                                             </div>
-                                            <h3 className="mt-3 truncate font-medium">
+                                            <span className="mt-3 block truncate font-medium">
                                                 {show.title}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">
+                                            </span>
+                                            <span className="block text-sm text-muted-foreground">
                                                 {show.subtitle}
-                                            </p>
-                                        </article>
+                                            </span>
+                                            <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                                <CircleCheck
+                                                    aria-hidden="true"
+                                                    className="size-3.5"
+                                                />
+                                                Prête à binge
+                                            </span>
+                                        </button>
                                     ))}
                                 </div>
                             </section>
@@ -248,20 +331,22 @@ export function Home() {
                                                 Prochaines sorties
                                             </h2>
                                         </div>
-                                        <Button
-                                            className="rounded-full"
-                                            size="sm"
-                                            variant="ghost"
-                                        >
+                                        <Button size="sm" variant="ghost">
                                             Calendrier
                                             <ChevronRight aria-hidden="true" />
                                         </Button>
                                     </div>
                                     <div className="flex flex-col divide-y rounded-2xl border bg-card/40 px-5">
                                         {upcomingReleases.map((release) => (
-                                            <article
-                                                className="flex items-center gap-4 py-4"
+                                            <button
+                                                className="flex w-full items-center gap-4 py-4 text-left"
                                                 key={`${release.title}-${release.episode}`}
+                                                onClick={() =>
+                                                    setSelectedMedia(
+                                                        release.media,
+                                                    )
+                                                }
+                                                type="button"
                                             >
                                                 <time className="w-14 shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
                                                     {release.date}
@@ -283,21 +368,70 @@ export function Home() {
                                                     aria-hidden="true"
                                                     className="size-4 text-muted-foreground"
                                                 />
-                                            </article>
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
-                                <aside className="flex flex-col justify-end rounded-2xl bg-muted/60 p-6">
-                                    <p className="text-sm text-muted-foreground">
-                                        Cette semaine
-                                    </p>
-                                    <p className="mt-2 font-heading text-4xl font-semibold tracking-[-0.05em]">
-                                        3 sorties
-                                    </p>
-                                    <p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
-                                        La saison de Silo sera entièrement
-                                        disponible dans 21 jours.
-                                    </p>
+                                <aside className="flex flex-col gap-6 rounded-3xl border bg-card p-6 shadow-sm">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Cette semaine
+                                            </p>
+                                            <p className="mt-1 font-heading text-4xl font-semibold tracking-[-0.05em]">
+                                                3 sorties
+                                            </p>
+                                        </div>
+                                        <Button size="sm" variant="ghost">
+                                            Voir tout
+                                            <ChevronRight aria-hidden="true" />
+                                        </Button>
+                                    </div>
+
+                                    <div className="grid grid-cols-7 gap-1">
+                                        {weekDays.map((weekDay) => (
+                                            <div
+                                                className="flex flex-col items-center gap-1.5"
+                                                key={weekDay.date}
+                                            >
+                                                <span className="text-[0.65rem] text-muted-foreground uppercase">
+                                                    {weekDay.day}
+                                                </span>
+                                                <span
+                                                    className={cn(
+                                                        'flex size-8 items-center justify-center rounded-full text-sm tabular-nums',
+                                                        weekDay.hasRelease
+                                                            ? 'bg-foreground text-background'
+                                                            : 'text-muted-foreground',
+                                                    )}
+                                                >
+                                                    {weekDay.date}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex flex-col gap-3 rounded-2xl bg-muted/70 p-4">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="font-medium">
+                                                    Silo · Saison 3
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Prête à binge le 12
+                                                    septembre
+                                                </p>
+                                            </div>
+                                            <span className="text-sm font-medium tabular-nums">
+                                                6 / 10
+                                            </span>
+                                        </div>
+                                        <Progress value={60}>
+                                            <ProgressTrack>
+                                                <ProgressIndicator />
+                                            </ProgressTrack>
+                                        </Progress>
+                                    </div>
                                 </aside>
                             </section>
                         </div>
@@ -338,6 +472,15 @@ export function Home() {
                     ))}
                 </div>
             </nav>
+
+            <MediaDrawer
+                media={selectedMedia}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedMedia(null);
+                    }
+                }}
+            />
         </>
     );
 }
