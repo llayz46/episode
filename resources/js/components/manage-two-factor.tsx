@@ -45,18 +45,18 @@ export default function ManageTwoFactor(props: Props) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
             <Heading
                 variant="small"
                 title="Authentification à deux facteurs"
                 description="Gérez les réglages de votre authentification à deux facteurs"
             />
             {twoFactorEnabled ? (
-                <div className="flex flex-col items-start justify-start space-y-4">
+                <div className="flex flex-col items-start gap-4">
                     <p className="text-sm text-muted-foreground">
-                        You will be prompted for a secure, random pin during
-                        login, which you can retrieve from the TOTP-supported
-                        application on your phone.
+                        Un code temporaire vous sera demandé à chaque connexion.
+                        Vous pouvez le générer dans une application compatible
+                        TOTP sur votre téléphone.
                     </p>
 
                     <div className="relative inline">
@@ -80,12 +80,10 @@ export default function ManageTwoFactor(props: Props) {
                     />
                 </div>
             ) : (
-                <div className="flex flex-col items-start justify-start space-y-4">
+                <div className="flex flex-col items-start gap-4">
                     <p className="text-sm text-muted-foreground">
-                        When you enable two-factor authentication, you will be
-                        prompted for a secure pin during login. This pin can be
-                        retrieved from a TOTP-supported application on your
-                        phone.
+                        Ajoutez une vérification par code pour renforcer la
+                        sécurité de votre compte à chaque connexion.
                     </p>
 
                     <div>

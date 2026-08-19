@@ -3,7 +3,6 @@ import { AnchoredToastProvider, ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { useFlashToast } from '@/hooks/use-flash-toast';
-import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SearchCommandLayout from '@/layouts/search-command-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -27,9 +26,9 @@ createInertiaApp({
             case name.startsWith('auth/'):
                 return [SearchCommandLayout, AuthLayout];
             case name.startsWith('settings/'):
-                return [SearchCommandLayout, AppLayout, SettingsLayout];
+                return [SearchCommandLayout, SettingsLayout];
             default:
-                return [SearchCommandLayout, AppLayout];
+                return SearchCommandLayout;
         }
     },
     strictMode: true,

@@ -22,7 +22,7 @@ export default function Profile() {
 
             <h1 className="sr-only">Profil</h1>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
                 <Heading
                     variant="small"
                     title="Profil"
@@ -34,7 +34,7 @@ export default function Profile() {
                     options={{
                         preserveScroll: true,
                     }}
-                    className="space-y-6"
+                    className="flex flex-col gap-6"
                 >
                     {({ processing, errors }) => (
                         <>
@@ -81,6 +81,7 @@ export default function Profile() {
                                 <Button
                                     disabled={processing}
                                     data-test="update-profile-button"
+                                    type="submit"
                                 >
                                     Enregistrer
                                 </Button>

@@ -1,22 +1,9 @@
 import { Head } from '@inertiajs/react';
-import {
-    Bell,
-    CalendarDays,
-    ChevronRight,
-    CircleCheck,
-    CircleUserRound,
-    Compass,
-    Home as HomeIcon,
-    LibraryBig,
-    Play,
-    Search,
-    Sparkles,
-} from 'lucide-react';
+import { Bell, ChevronRight, CircleCheck, Play, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
-import { MediaDrawer  } from '@/components/media-drawer';
-import type {MediaDrawerItem} from '@/components/media-drawer';
-import { useSearchCommand } from '@/components/search-command';
+import { MediaDrawer } from '@/components/media-drawer';
+import type { MediaDrawerItem } from '@/components/media-drawer';
 import { Button } from '@/components/ui/button';
 import {
     Progress,
@@ -147,17 +134,7 @@ const weekDays = [
     { day: 'Jeu', date: '28', hasRelease: true },
 ];
 
-const navigationItems = [
-    { icon: HomeIcon, label: 'Accueil', active: true },
-    { icon: Compass, label: 'Découvrir' },
-    { icon: CalendarDays, label: 'Calendrier' },
-    { icon: Search, label: 'Rechercher' },
-    { icon: LibraryBig, label: 'Bibliothèque' },
-    { icon: CircleUserRound, label: 'Profil' },
-];
-
 export function Home() {
-    const { openSearchCommand } = useSearchCommand();
     const [selectedMedia, setSelectedMedia] = useState<MediaDrawerItem | null>(
         null,
     );
@@ -438,40 +415,6 @@ export function Home() {
                     </div>
                 </main>
             </ScrollArea>
-
-            <nav
-                aria-label="Navigation principale"
-                className="fixed bottom-5 left-1/2 z-20 -translate-x-1/2 sm:bottom-7 sm:left-7 sm:translate-x-0"
-            >
-                <div
-                    className={cn(
-                        'flex items-center gap-1 p-1.5 text-white shadow-2xl shadow-black/30 backdrop-blur-xl',
-                        'rounded-2xl border-white/10 bg-neutral-950/85',
-                    )}
-                >
-                    {navigationItems.map(({ active, icon: Icon, label }) => (
-                        <Button
-                            aria-label={label}
-                            className={cn(
-                                'rounded-xl text-white/60 hover:bg-white/10 hover:text-white',
-                                active &&
-                                    'bg-white/12 text-white hover:bg-white/16',
-                            )}
-                            key={label}
-                            onClick={
-                                label === 'Rechercher'
-                                    ? openSearchCommand
-                                    : undefined
-                            }
-                            size="icon-lg"
-                            variant="ghost"
-                        >
-                            <Icon aria-hidden="true" />
-                            <span className="sr-only">{label}</span>
-                        </Button>
-                    ))}
-                </div>
-            </nav>
 
             <MediaDrawer
                 media={selectedMedia}

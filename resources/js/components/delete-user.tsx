@@ -20,14 +20,14 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
             <Heading
                 variant="small"
                 title="Supprimer le compte"
                 description="Supprimez votre compte et toutes ses données"
             />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div className="flex flex-col gap-4 rounded-2xl border border-destructive/20 bg-destructive/8 p-5">
+                <div className="flex flex-col gap-0.5 text-destructive-foreground">
                     <p className="font-medium">Attention</p>
                     <p className="text-sm">Cette action est irréversible.</p>
                 </div>

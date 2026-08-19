@@ -27,7 +27,7 @@ export default function Security(props: Props) {
 
             <h1 className="sr-only">Sécurité</h1>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
                 <Heading
                     variant="small"
                     title="Modifier le mot de passe"
@@ -54,7 +54,7 @@ export default function Security(props: Props) {
                             currentPasswordInput.current?.focus();
                         }
                     }}
-                    className="space-y-6"
+                    className="flex flex-col gap-6"
                 >
                     {({ errors, processing }) => (
                         <>
@@ -116,6 +116,7 @@ export default function Security(props: Props) {
                                 <Button
                                     disabled={processing}
                                     data-test="update-password-button"
+                                    type="submit"
                                 >
                                     Enregistrer
                                 </Button>

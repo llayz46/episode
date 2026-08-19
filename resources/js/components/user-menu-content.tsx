@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, MonitorCog, ShieldCheck, UserRound } from 'lucide-react';
 import {
     MenuGroup,
     MenuGroupLabel,
@@ -10,7 +10,9 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
+import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
+import { edit as editSecurity } from '@/routes/security';
 import type { User } from '@/types';
 
 type Props = {
@@ -40,8 +42,32 @@ export function UserMenuContent({ user }: Props) {
                 <MenuLinkItem
                     render={<Link href={edit()} onClick={cleanup} prefetch />}
                 >
-                    <Settings />
-                    Réglages
+                    <UserRound />
+                    Profil
+                </MenuLinkItem>
+                <MenuLinkItem
+                    render={
+                        <Link
+                            href={editSecurity()}
+                            onClick={cleanup}
+                            prefetch
+                        />
+                    }
+                >
+                    <ShieldCheck />
+                    Sécurité
+                </MenuLinkItem>
+                <MenuLinkItem
+                    render={
+                        <Link
+                            href={editAppearance()}
+                            onClick={cleanup}
+                            prefetch
+                        />
+                    }
+                >
+                    <MonitorCog />
+                    Apparence
                 </MenuLinkItem>
             </MenuGroup>
             <MenuSeparator />
@@ -49,6 +75,7 @@ export function UserMenuContent({ user }: Props) {
                 closeOnClick
                 data-test="logout-button"
                 onClick={handleLogout}
+                variant="destructive"
             >
                 <LogOut />
                 Se déconnecter
