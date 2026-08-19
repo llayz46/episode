@@ -12,6 +12,7 @@ import {
     Sparkles,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { useSearchCommand } from '@/components/search-command';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -75,6 +76,8 @@ const navigationItems = [
 ];
 
 export function Home() {
+    const { openSearchCommand } = useSearchCommand();
+
     return (
         <>
             <Head title="Accueil" />
@@ -321,6 +324,11 @@ export function Home() {
                                     'bg-white/12 text-white hover:bg-white/16',
                             )}
                             key={label}
+                            onClick={
+                                label === 'Rechercher'
+                                    ? openSearchCommand
+                                    : undefined
+                            }
                             size="icon-lg"
                             variant="ghost"
                         >

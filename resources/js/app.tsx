@@ -5,6 +5,7 @@ import { initializeTheme } from '@/hooks/use-appearance';
 import { useFlashToast } from '@/hooks/use-flash-toast';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import SearchCommandLayout from '@/layouts/search-command-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -20,15 +21,15 @@ createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name === 'home':
-                return null;
+                return SearchCommandLayout;
             case name === 'auth/login':
                 return null;
             case name.startsWith('auth/'):
-                return AuthLayout;
+                return [SearchCommandLayout, AuthLayout];
             case name.startsWith('settings/'):
-                return [AppLayout, SettingsLayout];
+                return [SearchCommandLayout, AppLayout, SettingsLayout];
             default:
-                return AppLayout;
+                return [SearchCommandLayout, AppLayout];
         }
     },
     strictMode: true,
