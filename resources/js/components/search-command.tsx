@@ -15,7 +15,24 @@ import {
     CommandPanel,
     CommandShortcut,
 } from '@/components/ui/command';
-import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { Kbd, KbdGroup } from '@/components/ui/kbd';
+
+type SearchType = 'all' | 'movie' | 'tv' | 'person';
+
+const searchTypes: Record<SearchType, { label: string }> = {
+    all: {
+        label: 'Tout',
+    },
+    movie: {
+        label: 'Films',
+    },
+    tv: {
+        label: 'Séries',
+    },
+    person: {
+        label: 'Personnes',
+    },
+};
 
 type SearchCommandProps = {
     open: boolean;
@@ -77,11 +94,43 @@ export function SearchCommand({
     open,
     onOpenChange,
 }: SearchCommandProps): ReactElement {
+    const [searchType, setSearchType] = useState<SearchType>('all');
+
+    const handleSearchTypeChange = (value: SearchType) => {
+        setSearchType(value);
+    };
+
     return (
         <CommandDialog onOpenChange={onOpenChange} open={open}>
             <CommandDialogPopup className="dark">
                 <Command>
-                    <CommandInput placeholder="Rechercher une série, un film…" />
+                    <CommandInput placeholder="Rechercher un film, une série ou une personne" />
+                    <div className="border-t px-4 py-2">
+                        <div className="flex gap-1">
+                            {(
+                                Object.entries(searchTypes) as [
+                                    SearchType,
+                                    (typeof searchTypes)[SearchType],
+                                ][]
+                            ).map(([value, { label }]) => (
+                                <button
+                                    aria-pressed={searchType === value}
+                                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                                        searchType === value
+                                            ? 'bg-white/10 text-white'
+                                            : 'text-white/50 hover:text-white'
+                                    }`}
+                                    key={value}
+                                    onClick={() =>
+                                        handleSearchTypeChange(value)
+                                    }
+                                    type="button"
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <CommandPanel>
                         <CommandList>
                             <CommandEmpty>
