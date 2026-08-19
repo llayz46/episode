@@ -95,6 +95,7 @@ export function SearchCommand({
     onOpenChange,
 }: SearchCommandProps): ReactElement {
     const [searchType, setSearchType] = useState<SearchType>('all');
+    const [query, setQuery] = useState<string>('');
 
     const handleSearchTypeChange = (value: SearchType) => {
         setSearchType(value);
@@ -104,7 +105,7 @@ export function SearchCommand({
         <CommandDialog onOpenChange={onOpenChange} open={open}>
             <CommandDialogPopup className="dark">
                 <Command>
-                    <CommandInput placeholder="Rechercher un film, une série ou une personne" />
+                    <CommandInput placeholder="Rechercher un film, une série ou une personne" value={query} onChange={(e) => setQuery(e.target.value)} />
                     <div className="border-t px-4 py-2">
                         <div className="flex gap-1">
                             {(
@@ -132,35 +133,17 @@ export function SearchCommand({
                         </div>
                     </div>
                     <CommandPanel>
-                        <CommandList>
-                            <CommandEmpty>
-                                Aucun résultat pour cette recherche.
-                            </CommandEmpty>
-                            <CommandGroup>
-                                <CommandGroupLabel>
-                                    Accès rapide
-                                </CommandGroupLabel>
-                                <CommandItem
-                                    onClick={() => onOpenChange(false)}
-                                    value="silo saison 3"
-                                >
-                                    Silo · Saison 3
-                                    <CommandShortcut>En cours</CommandShortcut>
-                                </CommandItem>
-                                <CommandItem
-                                    onClick={() => onOpenChange(false)}
-                                    value="calendrier sorties"
-                                >
-                                    Calendrier des sorties
-                                </CommandItem>
-                                <CommandItem
-                                    onClick={() => onOpenChange(false)}
-                                    value="bibliothèque watchlist"
-                                >
-                                    Ma bibliothèque
-                                </CommandItem>
-                            </CommandGroup>
-                        </CommandList>
+                        {query.trim() === '' ? (
+                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                                Commencez à saisir pour rechercher
+                            </div>
+                        ) : (
+                            <CommandList>
+                                <CommandEmpty>
+                                    Aucun résultat pour cette recherche.
+                                </CommandEmpty>
+                            </CommandList>
+                        )}
                     </CommandPanel>
                     <CommandFooter>
                         <div className="flex items-center gap-4">
