@@ -21,7 +21,7 @@ const featuredMedia: MediaDrawerItem = {
     platform: 'Apple TV+',
     releasedEpisodes: 6,
     seasonComplete: '12 septembre',
-    slug: 'silo',
+    slug: 'silo-125988',
     status: 'airing',
     subtitle: 'Saison 3',
     title: 'Silo',
@@ -118,7 +118,6 @@ const upcomingReleases = [
             image: bingeReady[2].image,
             kind: 'film' as const,
             platform: 'Netflix',
-            slug: 'the-thursday-murder-club',
             status: 'binge-ready' as const,
             subtitle: 'Film · Disponible en VOD',
             title: 'The Thursday Murder Club',
@@ -183,7 +182,9 @@ export function Home() {
                                         <Button
                                             render={
                                                 <Link
-                                                    href={mediaShow('silo')}
+                                                    href={mediaShow(
+                                                        'silo-125988',
+                                                    )}
                                                     prefetch
                                                 />
                                             }

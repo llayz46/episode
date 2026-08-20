@@ -55,6 +55,12 @@ test('it searches TMDB for films and series only', function () {
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.themoviedb.org/3/search/multi?page=1&query=Silo&language=fr-FR');
 });
 
+test('it does not render the removed static media pages', function () {
+    $this->actingAs(User::factory()->create())
+        ->get(route('media.show', 'silo'))
+        ->assertNotFound();
+});
+
 test('it imports a series with its seasons and episodes from TMDB', function () {
     Http::fake([
         'https://api.themoviedb.org/3/tv/125988/credits*' => Http::response([
