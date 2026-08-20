@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import {
     Bell,
     CalendarDays,
@@ -23,6 +24,7 @@ import {
     ProgressIndicator,
     ProgressTrack,
 } from '@/components/ui/progress';
+import { show as mediaShow } from '@/routes/media';
 
 export type MediaDrawerItem = {
     image: string;
@@ -35,6 +37,7 @@ export type MediaDrawerItem = {
     releasedEpisodes?: number;
     nextEpisode?: string;
     seasonComplete?: string;
+    slug?: string;
     year: string;
 };
 
@@ -177,7 +180,19 @@ export function MediaDrawer({
                             <Button variant="secondary">
                                 Ajouter une note
                             </Button>
-                            <Button>Voir la fiche complète</Button>
+                            {media.slug ? (
+                                <Button
+                                    render={
+                                        <Link href={mediaShow(media.slug)} />
+                                    }
+                                >
+                                    Voir la fiche complète
+                                </Button>
+                            ) : (
+                                <Button disabled>
+                                    Fiche bientôt disponible
+                                </Button>
+                            )}
                         </DrawerFooter>
                     </>
                 )}

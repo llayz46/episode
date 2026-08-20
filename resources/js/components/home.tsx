@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Bell, ChevronRight, CircleCheck, Play } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { show as mediaShow } from '@/routes/media';
 
 const featuredMedia: MediaDrawerItem = {
     image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90',
@@ -20,6 +21,7 @@ const featuredMedia: MediaDrawerItem = {
     platform: 'Apple TV+',
     releasedEpisodes: 6,
     seasonComplete: '12 septembre',
+    slug: 'silo',
     status: 'airing',
     subtitle: 'Saison 3',
     title: 'Silo',
@@ -116,6 +118,7 @@ const upcomingReleases = [
             image: bingeReady[2].image,
             kind: 'film' as const,
             platform: 'Netflix',
+            slug: 'the-thursday-murder-club',
             status: 'binge-ready' as const,
             subtitle: 'Film · Disponible en VOD',
             title: 'The Thursday Murder Club',
@@ -178,8 +181,11 @@ export function Home() {
                                     </div>
                                     <div className="flex flex-wrap gap-3">
                                         <Button
-                                            onClick={() =>
-                                                setSelectedMedia(featuredMedia)
+                                            render={
+                                                <Link
+                                                    href={mediaShow('silo')}
+                                                    prefetch
+                                                />
                                             }
                                         >
                                             <Play

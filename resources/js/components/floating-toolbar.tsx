@@ -34,7 +34,7 @@ export function FloatingToolbar() {
             aria-label="Navigation principale"
             className="fixed bottom-5 left-1/2 z-20 -translate-x-1/2 sm:bottom-7 sm:left-7 sm:translate-x-0"
         >
-            <div className="dark flex items-center gap-1 rounded-2xl border-white/10 bg-neutral-950/85 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+            <div className="dark flex items-center gap-1 rounded-2xl border border-white/10 bg-neutral-950/95 p-1.5 shadow-2xl shadow-black/45 backdrop-blur-xl">
                 {toolbarItems.map(({ icon: Icon, label }) => {
                     if (label === 'Profil') {
                         return (

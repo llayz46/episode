@@ -7,13 +7,9 @@ import {
     CommandDialogPopup,
     CommandEmpty,
     CommandFooter,
-    CommandGroup,
-    CommandGroupLabel,
     CommandInput,
-    CommandItem,
     CommandList,
     CommandPanel,
-    CommandShortcut,
 } from '@/components/ui/command';
 import { Kbd, KbdGroup } from '@/components/ui/kbd';
 
@@ -105,7 +101,11 @@ export function SearchCommand({
         <CommandDialog onOpenChange={onOpenChange} open={open}>
             <CommandDialogPopup className="dark">
                 <Command>
-                    <CommandInput placeholder="Rechercher un film, une série ou une personne" value={query} onChange={(e) => setQuery(e.target.value)} />
+                    <CommandInput
+                        placeholder="Rechercher un film, une série ou une personne"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
                     <div className="border-t px-4 py-2">
                         <div className="flex gap-1">
                             {(
