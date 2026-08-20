@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'vote_average',
     'vote_count',
     'genres',
+    'countries',
+    'networks',
     'tmdb_synced_at',
 ])]
 class Media extends Model
@@ -38,6 +40,8 @@ class Media extends Model
     {
         return [
             'genres' => 'array',
+            'countries' => 'array',
+            'networks' => 'array',
             'released_on' => 'date',
             'tmdb_synced_at' => 'datetime',
             'vote_average' => 'decimal:1',
@@ -50,5 +54,13 @@ class Media extends Model
     public function seasons(): HasMany
     {
         return $this->hasMany(Season::class);
+    }
+
+    /**
+     * @return HasMany<MediaCredit, $this>
+     */
+    public function credits(): HasMany
+    {
+        return $this->hasMany(MediaCredit::class);
     }
 }

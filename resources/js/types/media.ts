@@ -32,7 +32,7 @@ export type Season = {
 export type Media = {
     backdrop: string;
     cast: CastMember[];
-    country?: string;
+    countryCode?: string;
     creator?: {
         image: string;
         name: string;

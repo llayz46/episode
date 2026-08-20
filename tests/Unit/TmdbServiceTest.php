@@ -74,7 +74,7 @@ it('récupère une série et l’une de ses saisons et un épisode', function ()
             'season_number' => 3,
             'episode_number' => 2,
             'name' => 'It\'s All Good',
-            'air_date' => '2026-07-09'
+            'air_date' => '2026-07-09',
         ]),
         'https://api.themoviedb.org/3/tv/125988/season/3*' => Http::response([
             'id' => 305133,
@@ -94,6 +94,22 @@ it('récupère une série et l’une de ses saisons et un épisode', function ()
     expect($series['name'])->toBe('Silo')
         ->and($season['season_number'])->toBe(3)
         ->and($episode['id'])->toBe(7173958);
+});
+
+it('récupère les crédits d’un film et d’une série', function (): void {
+    Http::fake([
+        'https://api.themoviedb.org/3/movie/13/credits*' => Http::response([
+            'cast' => [['id' => 1, 'name' => 'Tom Hanks']],
+        ]),
+        'https://api.themoviedb.org/3/tv/125988/credits*' => Http::response([
+            'cast' => [['id' => 2, 'name' => 'Rebecca Ferguson']],
+        ]),
+    ]);
+
+    $service = app(TmdbService::class);
+
+    expect($service->movieCredits(13)['cast'][0]['name'])->toBe('Tom Hanks')
+        ->and($service->seriesCredits(125988)['cast'][0]['name'])->toBe('Rebecca Ferguson');
 });
 
 it('lève l’exception de réponse TMDB lorsqu’une réponse échoue', function (): void {

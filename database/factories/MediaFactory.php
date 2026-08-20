@@ -34,6 +34,8 @@ class MediaFactory extends Factory
             'vote_average' => fake()->randomFloat(1, 0, 10),
             'vote_count' => fake()->numberBetween(0, 100_000),
             'genres' => [fake()->word(), fake()->word()],
+            'countries' => ['US'],
+            'networks' => ['Apple TV'],
             'tmdb_synced_at' => now(),
         ];
     }

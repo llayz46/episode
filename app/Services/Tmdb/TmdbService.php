@@ -70,6 +70,26 @@ final class TmdbService
     }
 
     /**
+     * Récupère le casting et l'équipe d'un film depuis TMDB.
+     *
+     * @return array<string, mixed>
+     */
+    public function movieCredits(int $tmdbId): array
+    {
+        return $this->get("movie/{$tmdbId}/credits");
+    }
+
+    /**
+     * Récupère le casting et l'équipe d'une série depuis TMDB.
+     *
+     * @return array<string, mixed>
+     */
+    public function seriesCredits(int $tmdbId): array
+    {
+        return $this->get("tv/{$tmdbId}/credits");
+    }
+
+    /**
      * Récupère une saison précise et ses épisodes depuis TMDB.
      *
      * @return array<string, mixed>
@@ -78,7 +98,7 @@ final class TmdbService
     {
         return $this->get("tv/{$seriesTmdbId}/season/{$seasonNumber}");
     }
-    
+
     /**
      * Récupère un épisode précis depuis TMDB.
      *
