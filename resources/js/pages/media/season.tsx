@@ -12,7 +12,11 @@ import {
 } from '@/components/ui/breadcrumb';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { home } from '@/routes';
-import { season as mediaSeason, show as mediaShow } from '@/routes/media';
+import {
+    episode as mediaEpisode,
+    season as mediaSeason,
+    show as mediaShow,
+} from '@/routes/media';
 import type { MediaSeason, SeasonEpisode } from '@/types/media';
 
 type SeasonPageProps = {
@@ -51,7 +55,7 @@ export default function SeasonPage({
             <div className="pointer-events-none fixed inset-0 -z-10 bg-linear-to-t from-neutral-950 via-transparent to-black/35" />
 
             <ScrollArea className="h-dvh [&_[data-slot=scroll-area-scrollbar]]:opacity-80 [&_[data-slot=scroll-area-scrollbar]]:delay-0 [&_[data-slot=scroll-area-scrollbar][data-orientation=vertical]]:w-2 [&_[data-slot=scroll-area-thumb]]:bg-white/35">
-                <div className="mx-auto w-full max-w-[1200px] px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
+                <div className="mx-auto w-full max-w-[1600px] px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
                     <header className="flex items-center justify-between gap-5">
                         <AppLogo className="text-white" />
                         <nav
@@ -151,55 +155,65 @@ export default function SeasonPage({
 
                         <ol className="mt-5 flex flex-col gap-3">
                             {season.episodes.map((episode) => (
-                                <li
-                                    className="grid min-h-28 overflow-hidden rounded-xl border border-white/8 bg-white/6 sm:grid-cols-[10rem_minmax(0,1fr)_8rem]"
-                                    key={episode.number}
-                                >
-                                    <img
-                                        alt=""
-                                        className="h-28 w-full object-cover sm:h-full"
-                                        src={episode.image}
-                                    />
+                                <li key={episode.number}>
+                                    <Link
+                                        className="grid min-h-28 overflow-hidden rounded-xl border border-white/8 bg-white/6 transition-colors hover:bg-white/9 sm:grid-cols-[10rem_minmax(0,1fr)_8rem]"
+                                        href={mediaEpisode({
+                                            episode: episode.number,
+                                            season: season.number,
+                                            slug: media.slug,
+                                        })}
+                                        prefetch
+                                    >
+                                        <img
+                                            alt=""
+                                            className="h-28 w-full object-cover sm:h-full"
+                                            src={episode.image}
+                                        />
 
-                                    <div className="min-w-0 px-4 py-3 sm:px-5 sm:py-4">
-                                        <h3 className="text-sm font-medium text-white sm:text-base">
-                                            <span className="text-white/55">
-                                                E{episode.number}
-                                            </span>{' '}
-                                            {episode.title}
-                                        </h3>
-                                        <p className="mt-1 text-xs text-white/45">
-                                            {[
-                                                episode.airedOn,
-                                                episodeRuntime(episode.runtime),
-                                            ]
-                                                .filter(Boolean)
-                                                .join(' · ') || 'Date inconnue'}
-                                        </p>
-                                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/55 sm:text-sm">
-                                            {episode.overview ??
-                                                'Aucun synopsis n’est disponible pour cet épisode.'}
-                                        </p>
-                                    </div>
+                                        <div className="min-w-0 px-4 py-3 sm:px-5 sm:py-4">
+                                            <h3 className="text-sm font-medium text-white sm:text-base">
+                                                <span className="text-white/55">
+                                                    E{episode.number}
+                                                </span>{' '}
+                                                {episode.title}
+                                            </h3>
+                                            <p className="mt-1 text-xs text-white/45">
+                                                {[
+                                                    episode.airedOn,
+                                                    episodeRuntime(
+                                                        episode.runtime,
+                                                    ),
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' · ') ||
+                                                    'Date inconnue'}
+                                            </p>
+                                            <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/55 sm:text-sm">
+                                                {episode.overview ??
+                                                    'Aucun synopsis n’est disponible pour cet épisode.'}
+                                            </p>
+                                        </div>
 
-                                    <div className="flex items-start justify-end px-4 py-3 sm:px-5 sm:py-4">
-                                        <p className="flex items-center gap-1 text-sm font-medium text-emerald-400">
-                                            {episode.rating !== null && (
-                                                <Star
-                                                    aria-hidden="true"
-                                                    className="size-3.5 fill-current"
-                                                />
-                                            )}
-                                            {episodeRating(episode)}
-                                            <span className="text-xs font-normal text-white/45">
-                                                (
-                                                {new Intl.NumberFormat(
-                                                    'fr-FR',
-                                                ).format(episode.voteCount)}
-                                                )
-                                            </span>
-                                        </p>
-                                    </div>
+                                        <div className="flex items-start justify-end px-4 py-3 sm:px-5 sm:py-4">
+                                            <p className="flex items-center gap-1 text-sm font-medium text-emerald-400">
+                                                {episode.rating !== null && (
+                                                    <Star
+                                                        aria-hidden="true"
+                                                        className="size-3.5 fill-current"
+                                                    />
+                                                )}
+                                                {episodeRating(episode)}
+                                                <span className="text-xs font-normal text-white/45">
+                                                    (
+                                                    {new Intl.NumberFormat(
+                                                        'fr-FR',
+                                                    ).format(episode.voteCount)}
+                                                    )
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </Link>
                                 </li>
                             ))}
                         </ol>

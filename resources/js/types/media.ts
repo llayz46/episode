@@ -49,6 +49,20 @@ export type MediaSeason = {
     title: string;
 };
 
+export type MediaEpisode = {
+    airedOn: string | null;
+    image: string;
+    isAvailable: boolean;
+    nextNumber: number | null;
+    number: number;
+    overview: string;
+    previousNumber: number | null;
+    rating: number | null;
+    runtime: number | null;
+    title: string;
+    voteCount: number;
+};
+
 export type Media = {
     backdrop: string;
     cast: CastMember[];

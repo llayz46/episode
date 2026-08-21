@@ -14,7 +14,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { home } from '@/routes';
-import { season as mediaSeason } from '@/routes/media';
+import {
+    season as mediaSeason,
+    seasonControl as mediaSeasonControl,
+} from '@/routes/media';
 import type { Media, Season } from '@/types/media';
 
 type MediaShowProps = {
@@ -125,15 +128,32 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                 {media.description}
                             </p>
                             <div className="mt-7 flex flex-wrap gap-3">
-                                <Button>
-                                    <Play
-                                        aria-hidden="true"
-                                        className="fill-current"
-                                    />
-                                    {isSeries
-                                        ? 'Commencer le suivi'
-                                        : 'À regarder'}
-                                </Button>
+                                {isSeries ? (
+                                    <Button
+                                        render={
+                                            <Link
+                                                href={mediaSeasonControl(
+                                                    media.slug,
+                                                )}
+                                                prefetch
+                                            />
+                                        }
+                                    >
+                                        <Play
+                                            aria-hidden="true"
+                                            className="fill-current"
+                                        />
+                                        Commencer le suivi
+                                    </Button>
+                                ) : (
+                                    <Button>
+                                        <Play
+                                            aria-hidden="true"
+                                            className="fill-current"
+                                        />
+                                        À regarder
+                                    </Button>
+                                )}
                                 <Button variant="secondary">
                                     <Bell aria-hidden="true" />
                                     Me prévenir

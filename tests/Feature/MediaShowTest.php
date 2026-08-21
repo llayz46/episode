@@ -67,6 +67,7 @@ test('authenticated users can view the season control direction', function () {
         'aired_on' => now()->subDay(),
         'still_path' => '/radio.jpg',
     ]);
+    Season::factory()->for($series)->create(['number' => 4]);
 
     $this->actingAs(User::factory()->create())
         ->get(route('media.season-control', $series->slug))
@@ -116,6 +117,54 @@ test('authenticated users can view a season and its episodes', function () {
             ->where('season.episodes.0.image', 'https://image.tmdb.org/t/p/w780/le-passage.jpg')
             ->where('season.episodes.0.runtime', 55)
             ->where('season.episodes.0.voteCount', 1245));
+});
+
+test('authenticated users can view an episode', function () {
+    $series = Media::factory()->create([
+        'type' => 'tv',
+        'title' => 'Silo',
+        'slug' => 'silo-125988',
+        'networks' => ['Apple TV+'],
+    ]);
+    $season = Season::factory()->for($series)->create([
+        'number' => 3,
+        'title' => 'Saison 3',
+    ]);
+    Episode::factory()->for($season)->create([
+        'number' => 4,
+        'title' => 'L’ombre',
+    ]);
+    Episode::factory()->for($season)->create([
+        'number' => 5,
+        'title' => 'Le passage',
+        'synopsis' => 'Juliette découvre un nouveau passage.',
+        'aired_on' => '2026-08-14',
+        'runtime' => 55,
+        'still_path' => '/le-passage.jpg',
+        'vote_average' => 8.4,
+        'vote_count' => 1245,
+    ]);
+    Episode::factory()->for($season)->create([
+        'number' => 6,
+        'title' => 'La porte',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('media.episode', [
+            'slug' => $series->slug,
+            'season' => $season->number,
+            'episode' => 5,
+        ]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('media/episode')
+            ->where('media.title', 'Silo')
+            ->where('media.platform', 'Apple TV+')
+            ->where('season.title', 'Saison 3')
+            ->where('episode.number', 5)
+            ->where('episode.previousNumber', 4)
+            ->where('episode.nextNumber', 6)
+            ->where('episode.runtime', 55)
+            ->where('episode.voteCount', 1245));
 });
 
 test('an unknown media page returns a not found response', function () {

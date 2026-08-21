@@ -88,6 +88,69 @@ class MediaController extends Controller
         ]);
     }
 
+    public function episode(string $slug, int $season, int $episode): InertiaResponse
+    {
+        $media = Media::query()
+            ->where('slug', $slug)
+            ->with([
+                'credits.person',
+                'seasons' => fn (HasMany $query): HasMany => $query
+                    ->where('number', $season)
+                    ->with(['episodes' => fn (HasMany $query): HasMany => $query->orderBy('number')]),
+            ])
+            ->firstOrFail();
+        $selectedSeason = $media->seasons->first();
+        $selectedEpisode = $selectedSeason?->episodes->firstWhere('number', $episode);
+
+        if (! $selectedSeason || ! $selectedEpisode) {
+            abort(404);
+        }
+
+        $episodeNumbers = $selectedSeason->episodes
+            ->pluck('number')
+            ->map(fn (mixed $number): int => (int) $number);
+
+        return Inertia::render('media/episode', [
+            'media' => [
+                'backdrop' => $this->imageUrl($media->backdrop_path, 'original')
+                    ?? $this->imageUrl($media->poster_path, 'w1280')
+                    ?? '',
+                'cast' => $this->cast($media),
+                'platform' => $media->networks[0] ?? 'TMDB',
+                'poster' => $this->imageUrl($media->poster_path, 'w780')
+                    ?? $this->imageUrl($media->backdrop_path, 'w1280')
+                    ?? '',
+                'slug' => $media->slug,
+                'title' => $media->title,
+            ],
+            'season' => [
+                'number' => $selectedSeason->number,
+                'title' => $selectedSeason->title ?? "Saison {$selectedSeason->number}",
+            ],
+            'episode' => [
+                'airedOn' => $this->formatDate($selectedEpisode->aired_on),
+                'image' => $this->imageUrl($selectedEpisode->still_path, 'w1280')
+                    ?? $this->imageUrl($media->backdrop_path, 'w1280')
+                    ?? $this->imageUrl($media->poster_path, 'w780')
+                    ?? '',
+                'isAvailable' => $selectedEpisode->aired_on?->lessThanOrEqualTo(now()->startOfDay()) ?? false,
+                'nextNumber' => $episodeNumbers
+                    ->filter(fn (int $number): bool => $number > $selectedEpisode->number)
+                    ->first(),
+                'number' => $selectedEpisode->number,
+                'overview' => $selectedEpisode->synopsis
+                    ?? 'Aucun synopsis n’est disponible pour cet épisode.',
+                'previousNumber' => $episodeNumbers
+                    ->filter(fn (int $number): bool => $number < $selectedEpisode->number)
+                    ->last(),
+                'rating' => $selectedEpisode->vote_average !== null ? (float) $selectedEpisode->vote_average : null,
+                'runtime' => $selectedEpisode->runtime,
+                'title' => $selectedEpisode->title,
+                'voteCount' => $selectedEpisode->vote_count,
+            ],
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -102,7 +165,9 @@ class MediaController extends Controller
             ->sortBy('number')
             ->values();
         $currentSeason = $seasons
-            ->where('number', '>', 0)
+            ->filter(
+                fn (Season $season): bool => $season->number > 0 && $season->episodes->isNotEmpty(),
+            )
             ->sortByDesc('number')
             ->first();
         $seasonEpisodes = $currentSeason?->episodes
@@ -122,18 +187,7 @@ class MediaController extends Controller
             'backdrop' => $this->imageUrl($media->backdrop_path, 'original')
                 ?? $this->imageUrl($media->poster_path, 'w1280')
                 ?? '',
-            'cast' => $media->credits
-                ->where('credit_type', 'cast')
-                ->sortBy('display_order')
-                ->filter(fn (MediaCredit $credit): bool => $credit->person?->profile_path !== null)
-                ->take(12)
-                ->map(fn (MediaCredit $credit): array => [
-                    'image' => $this->imageUrl($credit->person->profile_path, 'w342') ?? '',
-                    'name' => $credit->person->name,
-                    'role' => $credit->character_name ?? 'Distribution',
-                ])
-                ->values()
-                ->all(),
+            'cast' => $this->cast($media),
             'countryCode' => $this->countryCode($media->countries[0] ?? null),
             'description' => $media->synopsis ?? 'Aucun synopsis n’est disponible pour le moment.',
             'episodeNavigation' => $seasonEpisodes
@@ -209,6 +263,25 @@ class MediaController extends Controller
             'Planned', 'Post Production' => 'À venir',
             default => $status ?? 'À venir',
         };
+    }
+
+    /**
+     * @return array<int, array{image: string, name: string, role: string}>
+     */
+    private function cast(Media $media): array
+    {
+        return $media->credits
+            ->where('credit_type', 'cast')
+            ->sortBy('display_order')
+            ->filter(fn (MediaCredit $credit): bool => $credit->person?->profile_path !== null)
+            ->take(12)
+            ->map(fn (MediaCredit $credit): array => [
+                'image' => $this->imageUrl($credit->person->profile_path, 'w342') ?? '',
+                'name' => $credit->person->name,
+                'role' => $credit->character_name ?? 'Distribution',
+            ])
+            ->values()
+            ->all();
     }
 
     private function countryCode(mixed $country): ?string
