@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Bell, Play } from 'lucide-react';
 import type { ReactElement } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { home } from '@/routes';
 import {
+    feature as featureMedia,
+    follow as followMedia,
     season as mediaSeason,
     seasonControl as mediaSeasonControl,
 } from '@/routes/media';
@@ -154,9 +156,22 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                         À regarder
                                     </Button>
                                 )}
-                                <Button variant="secondary">
+                                <Button
+                                    onClick={() =>
+                                        router.post(followMedia(media.slug))
+                                    }
+                                    variant="secondary"
+                                >
                                     <Bell aria-hidden="true" />
-                                    Me prévenir
+                                    Suivre
+                                </Button>
+                                <Button
+                                    onClick={() =>
+                                        router.post(featureMedia(media.slug))
+                                    }
+                                    variant="ghost"
+                                >
+                                    Mettre en avant
                                 </Button>
                             </div>
                         </div>

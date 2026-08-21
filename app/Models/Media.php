@@ -63,4 +63,12 @@ class Media extends Model
     {
         return $this->hasMany(MediaCredit::class);
     }
+
+    /**
+     * @return HasMany<UserMedia, $this>
+     */
+    public function userLibraries(): HasMany
+    {
+        return $this->hasMany(UserMedia::class);
+    }
 }

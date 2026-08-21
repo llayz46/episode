@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { show as mediaShow } from '@/routes/media';
 
-const featuredMedia: MediaDrawerItem = {
+const fallbackFeaturedMedia: MediaDrawerItem = {
     image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90',
     kind: 'series',
     nextEpisode: 'Prochain épisode · Vendredi 22 août',
@@ -87,8 +87,8 @@ const upcomingReleases = [
         date: 'Ven. 22',
         title: 'Silo',
         episode: 'S3E07',
-        image: featuredMedia.image,
-        media: featuredMedia,
+        image: fallbackFeaturedMedia.image,
+        media: fallbackFeaturedMedia,
     },
     {
         date: 'Lun. 25',
@@ -136,10 +136,16 @@ const weekDays = [
     { day: 'Jeu', date: '28', hasRelease: true },
 ];
 
-export function Home() {
+type HomeProps = {
+    featuredMedia: MediaDrawerItem | null;
+    trackedMedia: MediaDrawerItem[];
+};
+
+export function Home({ featuredMedia, trackedMedia }: HomeProps) {
     const [selectedMedia, setSelectedMedia] = useState<MediaDrawerItem | null>(
         null,
     );
+    const featured = featuredMedia ?? fallbackFeaturedMedia;
 
     return (
         <>
@@ -152,9 +158,9 @@ export function Home() {
                             className="dark relative min-h-screen overflow-hidden bg-neutral-950 text-white"
                         >
                             <img
-                                alt="Paysage montagneux sous une lumière froide"
+                                alt={`Image de ${featured.title}`}
                                 className="absolute inset-0 size-full object-cover object-center opacity-70"
-                                src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90"
+                                src={featured.image}
                             />
                             <div className="absolute inset-0 bg-linear-to-r from-black via-black/45 to-transparent" />
                             <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/30" />
@@ -164,18 +170,20 @@ export function Home() {
                                 <div className="mt-auto flex max-w-xl flex-col gap-6 pb-28 sm:pb-36">
                                     <div className="flex flex-col gap-3">
                                         <p className="text-sm font-medium tracking-[0.18em] text-white/60 uppercase">
-                                            Apple TV+ · 2025
+                                            {featured.platform} ·{' '}
+                                            {featured.year}
                                         </p>
                                         <h1
                                             id="featured-title"
                                             className="font-heading text-6xl font-semibold tracking-[-0.08em] sm:text-8xl"
                                         >
-                                            SILO
+                                            {featured.title}
                                         </h1>
                                         <p className="max-w-md text-base leading-7 text-white/70">
-                                            Il reste quatre semaines avant que
-                                            la saison soit prête à être dévorée
-                                            d’une traite.
+                                            {featured.status === 'airing'
+                                                ? (featured.nextEpisode ??
+                                                  'Diffusion en cours.')
+                                                : 'Disponible à regarder, à votre rythme.'}
                                         </p>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
@@ -183,7 +191,7 @@ export function Home() {
                                             render={
                                                 <Link
                                                     href={mediaShow(
-                                                        'silo-125988',
+                                                        featured.slug ?? '',
                                                     )}
                                                     prefetch
                                                 />
@@ -201,34 +209,32 @@ export function Home() {
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="absolute right-5 bottom-5 left-5 flex gap-3 overflow-x-auto sm:right-8 sm:bottom-8 sm:left-auto sm:w-[34rem] lg:right-12 lg:bottom-10">
-                                    {[
-                                        bingeReady[3],
-                                        bingeReady[0],
-                                        bingeReady[2],
-                                    ].map((show) => (
-                                        <button
-                                            className="w-36 shrink-0 rounded-2xl border border-white/10 bg-black/55 p-2 text-left text-white backdrop-blur-xl transition hover:bg-black/70"
-                                            key={show.title}
-                                            onClick={() =>
-                                                setSelectedMedia(show)
-                                            }
-                                            type="button"
-                                        >
-                                            <img
-                                                alt={`Poster de ${show.title}`}
-                                                className="aspect-[1.35] w-full rounded-xl object-cover"
-                                                src={show.image}
-                                            />
-                                            <span className="mt-2 block truncate text-sm font-medium">
-                                                {show.title}
-                                            </span>
-                                            <span className="block truncate text-xs text-white/55">
-                                                {show.subtitle}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
+                                {trackedMedia.length > 0 && (
+                                    <div className="absolute right-5 bottom-5 left-5 flex gap-3 overflow-x-auto sm:right-8 sm:bottom-8 sm:left-auto sm:w-[34rem] lg:right-12 lg:bottom-10">
+                                        {trackedMedia.map((show) => (
+                                            <button
+                                                className="w-36 shrink-0 rounded-2xl border border-white/10 bg-black/55 p-2 text-left text-white backdrop-blur-xl transition hover:bg-black/70"
+                                                key={show.title}
+                                                onClick={() =>
+                                                    setSelectedMedia(show)
+                                                }
+                                                type="button"
+                                            >
+                                                <img
+                                                    alt={`Poster de ${show.title}`}
+                                                    className="aspect-[1.35] w-full rounded-xl object-cover"
+                                                    src={show.image}
+                                                />
+                                                <span className="mt-2 block truncate text-sm font-medium">
+                                                    {show.title}
+                                                </span>
+                                                <span className="block truncate text-xs text-white/55">
+                                                    {show.subtitle}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </section>
