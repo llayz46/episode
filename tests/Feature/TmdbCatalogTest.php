@@ -18,29 +18,55 @@ beforeEach(function (): void {
     Http::preventStrayRequests();
 });
 
-test('it searches TMDB for films and series only', function () {
+test('it searches films and series independently with reliable TMDB results', function () {
     Http::fake([
-        'https://api.themoviedb.org/3/search/multi*' => Http::response([
+        'https://api.themoviedb.org/3/search/tv*' => Http::response([
             'results' => [
                 [
                     'id' => 125988,
-                    'media_type' => 'tv',
                     'name' => 'Silo',
                     'first_air_date' => '2023-05-04',
                     'overview' => 'Des survivants vivent sous terre. Leurs secrets restent enfouis.',
                     'poster_path' => '/silo.jpg',
+                    'popularity' => 100,
+                    'vote_count' => 50,
                 ],
                 [
-                    'id' => 287,
-                    'media_type' => 'person',
-                    'name' => 'Brad Pitt',
+                    'id' => 988,
+                    'name' => 'Love of Silom',
+                    'first_air_date' => '2026-03-11',
+                    'overview' => 'Une histoire d’amour.',
+                    'poster_path' => '/love-of-silom.jpg',
+                    'popularity' => 80,
+                    'vote_count' => 200,
+                ],
+                [
+                    'id' => 345,
+                    'title' => 'Silo',
+                    'name' => 'Silo',
+                    'first_air_date' => '2015-09-17',
+                    'overview' => 'Un documentaire oublié.',
+                    'poster_path' => '/silo-documentary.jpg',
+                    'popularity' => 999,
+                    'vote_count' => 3,
                 ],
             ],
+        ]),
+        'https://api.themoviedb.org/3/search/movie*' => Http::response([
+            'results' => [[
+                'id' => 987,
+                'title' => 'Silo',
+                'release_date' => '2021-03-11',
+                'overview' => 'Une famille isolée doit affronter une catastrophe.',
+                'poster_path' => '/silo-movie.jpg',
+                'popularity' => 100,
+                'vote_count' => 200,
+            ]],
         ]),
     ]);
 
     $this->actingAs(User::factory()->create())
-        ->getJson(route('tmdb.search', ['query' => 'Silo', 'type' => 'all']))
+        ->getJson(route('tmdb.search', ['query' => 'Silo', 'type' => 'tv']))
         ->assertSuccessful()
         ->assertJsonPath('results.0', [
             'tmdbId' => 125988,
@@ -50,9 +76,22 @@ test('it searches TMDB for films and series only', function () {
             'year' => '2023',
             'posterUrl' => 'https://image.tmdb.org/t/p/w185/silo.jpg',
         ])
+        ->assertJsonPath('results.1.tmdbId', 988)
+        ->assertJsonCount(2, 'results');
+
+    $this->actingAs(User::factory()->create())
+        ->getJson(route('tmdb.search', ['query' => 'Silo', 'type' => 'movie']))
+        ->assertSuccessful()
+        ->assertJsonPath('results.0.tmdbId', 987)
         ->assertJsonCount(1, 'results');
 
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.themoviedb.org/3/search/multi?page=1&query=Silo&language=fr-FR');
+    $this->actingAs(User::factory()->create())
+        ->getJson(route('tmdb.search', ['query' => 'Silo', 'type' => 'all']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('type');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.themoviedb.org/3/search/tv?page=1&query=Silo&language=fr-FR');
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.themoviedb.org/3/search/movie?page=1&query=Silo&language=fr-FR');
 });
 
 test('it does not render the removed static media pages', function () {

@@ -25,7 +25,7 @@ import { Kbd, KbdGroup } from '@/components/ui/kbd';
 import { search as tmdbSearch } from '@/routes/tmdb';
 import { Badge } from './ui/badge';
 
-type SearchType = 'all' | 'movie' | 'tv';
+type SearchType = 'movie' | 'tv';
 
 type TmdbSearchResult = {
     tmdbId: number;
@@ -41,9 +41,6 @@ type TmdbSearchResponse = {
 };
 
 const searchTypes: Record<SearchType, { label: string }> = {
-    all: {
-        label: 'Tout',
-    },
     movie: {
         label: 'Films',
     },
@@ -51,6 +48,14 @@ const searchTypes: Record<SearchType, { label: string }> = {
         label: 'Séries',
     },
 };
+
+function normalizedTitle(value: string): string {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLocaleLowerCase('fr-FR')
+        .trim();
+}
 
 type SearchCommandProps = {
     open: boolean;
@@ -86,6 +91,10 @@ export function SearchCommandProvider({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
+    useEffect(() => {
+        return router.on('start', () => setIsOpen(false));
+    }, []);
+
     return (
         <SearchCommandContext.Provider
             value={{ openSearchCommand: () => setIsOpen(true) }}
@@ -112,14 +121,19 @@ export function SearchCommand({
     open,
     onOpenChange,
 }: SearchCommandProps): ReactElement {
-    const [searchType, setSearchType] = useState<SearchType>('all');
+    const [searchType, setSearchType] = useState<SearchType>('tv');
     const [query, setQuery] = useState<string>('');
-    const [results, setResults] = useState<TmdbSearchResult[]>([]);
+    const [resultsByType, setResultsByType] = useState<
+        Record<SearchType, TmdbSearchResult[]>
+    >({ movie: [], tv: [] });
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [searchFailed, setSearchFailed] = useState<boolean>(false);
-    const { cancel, submit } = useHttp();
+    const { cancel: cancelMovieSearch, submit: submitMovieSearch } = useHttp();
+    const { cancel: cancelSeriesSearch, submit: submitSeriesSearch } =
+        useHttp();
     const requestId = useRef(0);
-    
+    const hasSearchQuery = query.trim().length >= 2;
+
     const handleSearchTypeChange = (value: SearchType) => {
         setSearchType(value);
     };
@@ -129,7 +143,8 @@ export function SearchCommand({
         const currentRequestId = requestId.current + 1;
 
         requestId.current = currentRequestId;
-        cancel();
+        cancelMovieSearch();
+        cancelSeriesSearch();
 
         if (normalizedQuery.length < 2) {
             return;
@@ -139,45 +154,70 @@ export function SearchCommand({
             setIsSearching(true);
             setSearchFailed(false);
 
-            try {
-                const response = (await submit(
+            const [movieResponse, seriesResponse] = await Promise.allSettled([
+                submitMovieSearch(
                     tmdbSearch({
-                        query: { query: normalizedQuery, type: searchType },
+                        query: { query: normalizedQuery, type: 'movie' },
                     }),
-                )) as TmdbSearchResponse;
+                ),
+                submitSeriesSearch(
+                    tmdbSearch({
+                        query: { query: normalizedQuery, type: 'tv' },
+                    }),
+                ),
+            ]);
 
-                if (requestId.current === currentRequestId) {
-                    setResults(response.results);
-                }
-            } catch {
-                if (requestId.current === currentRequestId) {
-                    setResults([]);
-                    setSearchFailed(true);
-                }
-            } finally {
-                if (requestId.current === currentRequestId) {
-                    setIsSearching(false);
-                }
+            if (requestId.current === currentRequestId) {
+                setResultsByType({
+                    movie:
+                        movieResponse.status === 'fulfilled'
+                            ? (movieResponse.value as TmdbSearchResponse)
+                                  .results
+                            : [],
+                    tv:
+                        seriesResponse.status === 'fulfilled'
+                            ? (seriesResponse.value as TmdbSearchResponse)
+                                  .results
+                            : [],
+                });
+                setSearchFailed(
+                    movieResponse.status === 'rejected' &&
+                        seriesResponse.status === 'rejected',
+                );
+                setIsSearching(false);
             }
         }, 300);
 
         return () => {
             window.clearTimeout(timeout);
-            cancel();
+            cancelMovieSearch();
+            cancelSeriesSearch();
         };
-    }, [cancel, query, searchType, submit]);
+    }, [
+        cancelMovieSearch,
+        cancelSeriesSearch,
+        query,
+        submitMovieSearch,
+        submitSeriesSearch,
+    ]);
+
+    const alternateSearchType = searchType === 'tv' ? 'movie' : 'tv';
+    const suggestedResult = hasSearchQuery
+        ? resultsByType[alternateSearchType].find(
+              (result) =>
+                  normalizedTitle(result.title) === normalizedTitle(query),
+          )
+        : undefined;
+    const suggestedTypeLabel =
+        alternateSearchType === 'movie' ? 'film' : 'série';
+    const switchLabel =
+        alternateSearchType === 'movie' ? 'Voir les films' : 'Voir les séries';
 
     const importResult = (result: TmdbSearchResult): void => {
-        router.post(
-            importMedia(),
-            {
-                tmdb_id: result.tmdbId,
-                type: result.type,
-            },
-            {
-                onSuccess: () => onOpenChange(false),
-            },
-        );
+        router.post(importMedia(), {
+            tmdb_id: result.tmdbId,
+            type: result.type,
+        });
     };
 
     return (
@@ -190,7 +230,7 @@ export function SearchCommand({
 
                         return `${result.title} ${result.year ?? ''}`;
                     }}
-                    items={results}
+                    items={hasSearchQuery ? resultsByType[searchType] : []}
                 >
                     <CommandInput
                         onChange={(e) => setQuery(e.target.value)}
@@ -224,8 +264,30 @@ export function SearchCommand({
                             ))}
                         </div>
                     </div>
+                    {suggestedResult && (
+                        <div className="flex items-center justify-between gap-3 border-t px-4 py-2">
+                            <p className="min-w-0 truncate text-xs text-muted-foreground">
+                                Vous cherchez peut-être le {suggestedTypeLabel}{' '}
+                                <span className="font-medium text-foreground">
+                                    {suggestedResult.title}
+                                    {suggestedResult.year &&
+                                        ` (${suggestedResult.year})`}
+                                </span>
+                            </p>
+                            <Button
+                                onClick={() =>
+                                    handleSearchTypeChange(alternateSearchType)
+                                }
+                                size="sm"
+                                type="button"
+                                variant="ghost"
+                            >
+                                {switchLabel}
+                            </Button>
+                        </div>
+                    )}
                     <CommandPanel>
-                        {query.trim().length < 2 ? (
+                        {!hasSearchQuery ? (
                             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                                 Saisissez au moins deux caractères pour
                                 rechercher.
@@ -265,7 +327,7 @@ export function SearchCommand({
                                                                 <Clapperboard />
                                                             </div>
                                                         )}
-                                                        <span className="min-w-0 flex-1 ml-3">
+                                                        <span className="ml-3 min-w-0 flex-1">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="truncate text-sm font-medium text-white">
                                                                     {
@@ -280,7 +342,10 @@ export function SearchCommand({
                                                             </div>
 
                                                             <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                                <Badge variant="outline" size="sm">
+                                                                <Badge
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                >
                                                                     {result.type ===
                                                                     'movie'
                                                                         ? 'Film'
@@ -288,7 +353,9 @@ export function SearchCommand({
                                                                 </Badge>
                                                             </span>
                                                             <p className="mt-0.5 truncate text-[11px] leading-tight text-zinc-500">
-                                                                {result.overview}
+                                                                {
+                                                                    result.overview
+                                                                }
                                                             </p>
                                                         </span>
                                                     </CommandItem>

@@ -21,7 +21,7 @@ class TmdbSearchRequest extends FormRequest
     {
         return [
             'query' => ['required', 'string', 'min:2', 'max:100'],
-            'type' => ['required', 'in:all,movie,tv'],
+            'type' => ['required', 'in:movie,tv'],
         ];
     }
 }

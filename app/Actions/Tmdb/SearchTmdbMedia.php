@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class SearchTmdbMedia
 {
+    private const MINIMUM_VOTE_COUNT = 5;
+
     public function __construct(private TmdbService $tmdb) {}
 
     /**
@@ -14,14 +16,13 @@ class SearchTmdbMedia
      */
     public function handle(string $query, string $type): array
     {
-        $payload = match ($type) {
-            'movie' => $this->tmdb->searchMovies($query),
-            'tv' => $this->tmdb->searchSeries($query),
-            default => $this->tmdb->searchMulti($query),
-        };
+        $payload = $type === 'movie'
+            ? $this->tmdb->searchMovies($query)
+            : $this->tmdb->searchSeries($query);
 
         return collect($payload['results'] ?? [])
             ->filter(fn (mixed $result): bool => is_array($result))
+            ->filter(fn (array $result): bool => (int) ($result['vote_count'] ?? 0) >= self::MINIMUM_VOTE_COUNT)
             ->map(function (array $result) use ($type): ?array {
                 $resultType = $result['media_type'] ?? $type;
 
@@ -42,17 +43,29 @@ class SearchTmdbMedia
                     : $result['first_air_date'] ?? null;
 
                 return [
-                    'tmdbId' => (int) ($result['id'] ?? 0),
-                    'type' => $resultType,
-                    'title' => $title,
-                    'overview' => $this->firstSentence($result['overview'] ?? null),
-                    'year' => is_string($releaseDate) && $releaseDate !== ''
-                        ? Str::before($releaseDate, '-')
-                        : null,
-                    'posterUrl' => $this->imageUrl($result['poster_path'] ?? null),
+                    'popularity' => (float) ($result['popularity'] ?? 0),
+                    'result' => [
+                        'tmdbId' => (int) ($result['id'] ?? 0),
+                        'type' => $resultType,
+                        'title' => $title,
+                        'overview' => $this->firstSentence($result['overview'] ?? null),
+                        'year' => is_string($releaseDate) && $releaseDate !== ''
+                            ? Str::before($releaseDate, '-')
+                            : null,
+                        'posterUrl' => $this->imageUrl($result['poster_path'] ?? null),
+                    ],
+                    'voteCount' => (int) ($result['vote_count'] ?? 0),
                 ];
             })
-            ->filter(fn (?array $result): bool => $result !== null && $result['tmdbId'] > 0)
+            ->filter(fn (?array $result): bool => $result !== null && $result['result']['tmdbId'] > 0)
+            ->sort(function (array $left, array $right): int {
+                $popularityComparison = $right['popularity'] <=> $left['popularity'];
+
+                return $popularityComparison !== 0
+                    ? $popularityComparison
+                    : $right['voteCount'] <=> $left['voteCount'];
+            })
+            ->map(fn (array $result): array => $result['result'])
             ->take(12)
             ->values()
             ->all();
