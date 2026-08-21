@@ -62,6 +62,8 @@ class BuildHomeDashboard
         $isAiring = $media->type === 'tv' && $season && $nextEpisode !== null;
 
         return array_filter([
+            'description' => $media->synopsis,
+            'genres' => $media->genres,
             'image' => $this->imageUrl($media->backdrop_path, 'w1280')
                 ?? $this->imageUrl($media->poster_path, 'w780')
                 ?? '',
@@ -71,12 +73,14 @@ class BuildHomeDashboard
                 : null,
             'platform' => $media->networks[0] ?? 'TMDB',
             'releasedEpisodes' => $season ? $releasedEpisodes->count() : null,
+            'rating' => $media->vote_average !== null ? (float) $media->vote_average : null,
             'seasonComplete' => $season ? $this->formatDate($episodes->max('aired_on')) : null,
             'slug' => $media->slug,
             'status' => $isAiring ? 'airing' : 'binge-ready',
             'subtitle' => $season ? "Saison {$season->number}" : 'Film',
             'title' => $media->title,
             'totalEpisodes' => $season?->episode_count,
+            'voteCount' => $media->vote_count,
             'year' => $media->released_on?->format('Y') ?? '',
         ], fn (mixed $value): bool => $value !== null);
     }
