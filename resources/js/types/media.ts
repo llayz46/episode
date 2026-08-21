@@ -29,6 +29,26 @@ export type Season = {
     status: string;
 };
 
+export type SeasonEpisode = {
+    airedOn: string | null;
+    image: string;
+    number: number;
+    overview: string | null;
+    rating: number | null;
+    runtime: number | null;
+    title: string;
+    voteCount: number;
+};
+
+export type MediaSeason = {
+    episodeCount: number;
+    episodes: SeasonEpisode[];
+    nextNumber: number | null;
+    number: number;
+    previousNumber: number | null;
+    title: string;
+};
+
 export type Media = {
     backdrop: string;
     cast: CastMember[];
@@ -59,6 +79,7 @@ export type Media = {
     season: string | null;
     seasonComplete: string | null;
     seasons: Season[];
+    slug: string;
     status: string;
     tagline?: string;
     title: string;

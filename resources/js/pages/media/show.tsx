@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { home } from '@/routes';
+import { season as mediaSeason } from '@/routes/media';
 import type { Media, Season } from '@/types/media';
 
 type MediaShowProps = {
@@ -189,13 +190,18 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                 <ScrollArea className="mt-5 h-auto w-full">
                                     <div className="flex w-max gap-3 pb-4">
                                         {media.seasons.map((season) => (
-                                            <article
-                                                className="relative aspect-[2/3] w-36 shrink-0 overflow-hidden rounded-xl bg-white/10 sm:w-40"
+                                            <Link
+                                                className="group relative aspect-[2/3] w-36 shrink-0 overflow-hidden rounded-xl bg-white/10 sm:w-40"
+                                                href={mediaSeason({
+                                                    season: season.number,
+                                                    slug: media.slug,
+                                                })}
                                                 key={season.number}
+                                                prefetch
                                             >
                                                 <img
                                                     alt={`Affiche de la saison ${season.number} de ${media.title}`}
-                                                    className="size-full object-cover"
+                                                    className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                     src={seasonImage(
                                                         media,
                                                         season,
@@ -221,7 +227,7 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                                 >
                                                     {season.status}
                                                 </Badge>
-                                            </article>
+                                            </Link>
                                         ))}
                                     </div>
                                 </ScrollArea>

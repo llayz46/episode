@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\MediaCredit;
 use App\Models\Season;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -25,6 +26,65 @@ class MediaController extends Controller
     {
         return Inertia::render('media/season-control', [
             'media' => $this->catalogueMedia($slug),
+        ]);
+    }
+
+    public function season(string $slug, int $season): InertiaResponse
+    {
+        $media = Media::query()
+            ->where('slug', $slug)
+            ->with([
+                'seasons' => fn (HasMany $query): HasMany => $query
+                    ->where('number', $season)
+                    ->with(['episodes' => fn (HasMany $query): HasMany => $query->orderBy('number')]),
+            ])
+            ->firstOrFail();
+        $selectedSeason = $media->seasons->first();
+
+        if (! $selectedSeason) {
+            abort(404);
+        }
+
+        $seasonNumbers = $media->seasons()
+            ->orderBy('number')
+            ->pluck('number')
+            ->map(fn (mixed $number): int => (int) $number);
+
+        return Inertia::render('media/season', [
+            'media' => [
+                'backdrop' => $this->imageUrl($media->backdrop_path, 'original')
+                    ?? $this->imageUrl($media->poster_path, 'w1280')
+                    ?? '',
+                'slug' => $media->slug,
+                'title' => $media->title,
+            ],
+            'season' => [
+                'episodeCount' => $selectedSeason->episode_count,
+                'episodes' => $selectedSeason->episodes
+                    ->map(fn ($episode): array => [
+                        'airedOn' => $this->formatDate($episode->aired_on),
+                        'image' => $this->imageUrl($episode->still_path, 'w780')
+                            ?? $this->imageUrl($media->backdrop_path, 'w780')
+                            ?? $this->imageUrl($media->poster_path, 'w780')
+                            ?? '',
+                        'number' => $episode->number,
+                        'overview' => $episode->synopsis,
+                        'rating' => $episode->vote_average !== null ? (float) $episode->vote_average : null,
+                        'runtime' => $episode->runtime,
+                        'title' => $episode->title,
+                        'voteCount' => $episode->vote_count,
+                    ])
+                    ->values()
+                    ->all(),
+                'number' => $selectedSeason->number,
+                'nextNumber' => $seasonNumbers
+                    ->filter(fn (int $number): bool => $number > $selectedSeason->number)
+                    ->first(),
+                'previousNumber' => $seasonNumbers
+                    ->filter(fn (int $number): bool => $number < $selectedSeason->number)
+                    ->last(),
+                'title' => $selectedSeason->title ?? "Saison {$selectedSeason->number}",
+            ],
         ]);
     }
 
@@ -110,6 +170,7 @@ class MediaController extends Controller
             'poster' => $this->imageUrl($media->poster_path, 'w780')
                 ?? $this->imageUrl($media->backdrop_path, 'w1280')
                 ?? '',
+            'slug' => $media->slug,
             'progress' => $media->type === 'tv' && $currentSeason
                 ? [
                     'released' => $releasedEpisodes->count(),

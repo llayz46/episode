@@ -12,6 +12,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('media/import', [MediaImportController::class, 'store'])->name('media.import');
     Route::get('media/{slug}/season-control', [MediaController::class, 'seasonControl'])
         ->name('media.season-control');
+    Route::get('media/{slug}/seasons/{season}', [MediaController::class, 'season'])
+        ->whereNumber('season')
+        ->name('media.season');
     Route::get('media/{slug}', [MediaController::class, 'show'])->name('media.show');
 });
 

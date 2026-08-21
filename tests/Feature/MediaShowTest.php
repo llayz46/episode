@@ -77,6 +77,47 @@ test('authenticated users can view the season control direction', function () {
             ->where('media.episodeNavigation.0.title', 'Radio'));
 });
 
+test('authenticated users can view a season and its episodes', function () {
+    $series = Media::factory()->create([
+        'type' => 'tv',
+        'title' => 'Silo',
+        'slug' => 'silo-125988',
+    ]);
+    $season = Season::factory()->for($series)->create([
+        'number' => 3,
+        'title' => 'Saison 3',
+        'synopsis' => 'La saison qui change tout.',
+        'episode_count' => 1,
+    ]);
+    Season::factory()->for($series)->create(['number' => 1]);
+    Season::factory()->for($series)->create(['number' => 4]);
+    Episode::factory()->for($season)->create([
+        'number' => 5,
+        'title' => 'Le passage',
+        'synopsis' => 'Juliette découvre un nouveau passage.',
+        'aired_on' => '2026-08-14',
+        'runtime' => 55,
+        'still_path' => '/le-passage.jpg',
+        'vote_average' => 8.4,
+        'vote_count' => 1245,
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('media.season', ['slug' => $series->slug, 'season' => $season->number]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('media/season')
+            ->where('media.slug', 'silo-125988')
+            ->where('season.number', 3)
+            ->where('season.previousNumber', 1)
+            ->where('season.nextNumber', 4)
+            ->where('season.title', 'Saison 3')
+            ->where('season.episodes.0.number', 5)
+            ->where('season.episodes.0.title', 'Le passage')
+            ->where('season.episodes.0.image', 'https://image.tmdb.org/t/p/w780/le-passage.jpg')
+            ->where('season.episodes.0.runtime', 55)
+            ->where('season.episodes.0.voteCount', 1245));
+});
+
 test('an unknown media page returns a not found response', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('media.show', 'unknown'))
