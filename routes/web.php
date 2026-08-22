@@ -17,6 +17,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('dashboard', '/')->name('dashboard');
     Route::get('tmdb/search', TmdbSearchController::class)->name('tmdb.search');
     Route::post('media/import', [MediaImportController::class, 'store'])->name('media.import');
+    Route::post('media/{media:slug}/watchlist', [MediaLibraryController::class, 'addToWatchlist'])
+        ->name('media.watchlist');
     Route::post('media/{media:slug}/follow', [MediaLibraryController::class, 'follow'])
         ->name('media.follow');
     Route::post('media/{media:slug}/feature', [MediaLibraryController::class, 'feature'])

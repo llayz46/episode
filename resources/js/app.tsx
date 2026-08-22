@@ -35,6 +35,7 @@ if (!window.episodeInertiaStarted) {
                     'auth/register',
                     'auth/forgot-password',
                     'auth/two-factor-challenge',
+                    'auth/confirm-password',
                 ].includes(name):
                     return null;
                 case name.startsWith('auth/'):

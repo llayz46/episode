@@ -18,6 +18,7 @@ import {
     feature as featureMedia,
     follow as followMedia,
     season as mediaSeason,
+    watchlist as addToWatchlist,
 } from '@/routes/media';
 import type { Media, Season } from '@/types/media';
 
@@ -150,12 +151,30 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                         Voir les épisodes
                                     </Button>
                                 ) : (
-                                    <Button>
-                                        <Play
-                                            aria-hidden="true"
-                                            className="fill-current"
-                                        />
-                                        À regarder
+                                    <Button
+                                        disabled={media.library.isFollowed}
+                                        onClick={() =>
+                                            router.post(
+                                                addToWatchlist(media.slug),
+                                            )
+                                        }
+                                        variant={
+                                            media.library.isFollowed
+                                                ? 'secondary'
+                                                : 'default'
+                                        }
+                                    >
+                                        {media.library.isFollowed ? (
+                                            <Check aria-hidden="true" />
+                                        ) : (
+                                            <Play
+                                                aria-hidden="true"
+                                                className="fill-current"
+                                            />
+                                        )}
+                                        {media.library.isFollowed
+                                            ? 'Dans ma liste'
+                                            : 'Ajouter à ma liste'}
                                     </Button>
                                 )}
                                 <Button

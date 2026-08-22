@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Library\AddToWatchlist;
 use App\Actions\Library\FollowMedia;
 use App\Actions\Library\RateMedia;
 use App\Actions\Library\SetFeaturedMedia;
@@ -14,6 +15,19 @@ use Illuminate\Http\Request;
 
 class MediaLibraryController extends Controller
 {
+    public function addToWatchlist(
+        Request $request,
+        Media $media,
+        AddToWatchlist $addToWatchlist,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        $addToWatchlist->handle($user, $media);
+
+        return back();
+    }
+
     public function follow(
         Request $request,
         Media $media,

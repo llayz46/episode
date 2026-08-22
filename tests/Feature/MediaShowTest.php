@@ -63,6 +63,39 @@ test('authenticated users can view a film page', function () {
             ->where('media.title', 'The Thursday Murder Club'));
 });
 
+test('a user can add a film to their watchlist', function () {
+    $user = User::factory()->create();
+    $film = Media::factory()->create(['type' => 'movie']);
+
+    $this->actingAs($user)
+        ->post(route('media.watchlist', $film->slug))
+        ->assertRedirect();
+
+    expect(UserMedia::query()
+        ->whereBelongsTo($user)
+        ->whereBelongsTo($film)
+        ->first())
+        ->status->toBe('watchlist');
+});
+
+test('adding a followed film to the watchlist preserves its follow status', function () {
+    $user = User::factory()->create();
+    $film = Media::factory()->create(['type' => 'movie']);
+    UserMedia::factory()->for($user)->for($film)->create([
+        'status' => 'following',
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('media.watchlist', $film->slug))
+        ->assertRedirect();
+
+    expect(UserMedia::query()
+        ->whereBelongsTo($user)
+        ->whereBelongsTo($film)
+        ->value('status'))
+        ->toBe('following');
+});
+
 test('authenticated users can access the current season from a series page', function () {
     $series = Media::factory()->create([
         'type' => 'tv',

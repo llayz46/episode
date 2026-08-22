@@ -20,3 +20,14 @@ test('password confirmation requires authentication', function () {
 
     $response->assertRedirect(route('login'));
 });
+
+test('users can confirm their password', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('password.confirm.store'), [
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertSessionHas('auth.password_confirmed_at');
+});

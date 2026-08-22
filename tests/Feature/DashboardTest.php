@@ -63,11 +63,15 @@ test('the home page provides TMDB trending series when the catalogue is empty', 
 test('authenticated users can visit their collection', function () {
     $user = User::factory()->create();
     $media = Media::factory()->create([
+        'genres' => ['Science-fiction'],
         'slug' => 'silo-125988',
+        'synopsis' => 'Une communauté vit sous terre.',
         'title' => 'Silo',
     ]);
     UserMedia::factory()->for($user)->for($media)->create([
         'is_featured' => true,
+        'rating' => 8,
+        'reminders_enabled' => true,
         'status' => 'following',
     ]);
 
@@ -78,7 +82,12 @@ test('authenticated users can visit their collection', function () {
             ->where('total', 1)
             ->where('items.0.title', 'Silo')
             ->where('items.0.libraryStatus', 'following')
-            ->where('items.0.isFeatured', true));
+            ->where('items.0.isFeatured', true)
+            ->where('items.0.isFollowed', true)
+            ->where('items.0.remindersEnabled', true)
+            ->where('items.0.userRating', 8)
+            ->where('items.0.description', 'Une communauté vit sous terre.')
+            ->where('items.0.genres.0', 'Science-fiction'));
 });
 
 test('the home page prioritizes the user featured media and followed media', function () {

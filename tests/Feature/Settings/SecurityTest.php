@@ -26,7 +26,8 @@ test('security page is displayed', function () {
             ->where('canManagePasskeys', true)
             ->where('passkeys', [])
             ->where('canManageTwoFactor', true)
-            ->where('twoFactorEnabled', false),
+            ->where('twoFactorEnabled', false)
+            ->where('requiresConfirmation', true),
         );
 });
 
