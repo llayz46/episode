@@ -134,7 +134,9 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                         render={
                                             <Link
                                                 href={mediaSeason({
-                                                    season: media.currentSeasonNumber ?? 1,
+                                                    season:
+                                                        media.currentSeasonNumber ??
+                                                        1,
                                                     slug: media.slug,
                                                 })}
                                                 prefetch
@@ -145,7 +147,7 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                             aria-hidden="true"
                                             className="fill-current"
                                         />
-                                        Commencer le suivi
+                                        Voir les épisodes
                                     </Button>
                                 ) : (
                                     <Button>

@@ -5,6 +5,8 @@ use App\Models\Media;
 use App\Models\Season;
 use App\Models\User;
 use App\Models\UserMedia;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to the login page from the home page', function () {
@@ -24,6 +26,38 @@ test('authenticated users can visit the home page', function () {
         ->has('bingeReady', 0)
         ->has('upcomingReleases', 0)
         ->where('week.releaseCount', 0));
+});
+
+test('the home page provides TMDB trending series when the catalogue is empty', function () {
+    Cache::forget('tmdb:trending-series:week');
+    config()->set('tmdb.api_token', 'test-token');
+    config()->set('tmdb.api_url', 'https://api.themoviedb.org/3');
+    config()->set('tmdb.image_url', 'https://image.tmdb.org/t/p');
+
+    Http::fake([
+        'https://api.themoviedb.org/3/trending/tv/week*' => Http::response([
+            'results' => [[
+                'backdrop_path' => '/silo.jpg',
+                'first_air_date' => '2023-05-05',
+                'id' => 125988,
+                'name' => 'Silo',
+                'overview' => 'Un monde souterrain mystérieux.',
+                'popularity' => 95.5,
+                'vote_average' => 8.2,
+                'vote_count' => 1500,
+            ]],
+        ]),
+    ]);
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('trendingSeries', 1)
+            ->where('trendingSeries.0.tmdbId', 125988)
+            ->where('trendingSeries.0.title', 'Silo')
+            ->where('trendingSeries.0.image', 'https://image.tmdb.org/t/p/w1280/silo.jpg'));
 });
 
 test('authenticated users can visit their collection', function () {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ratingOptions } from '@/lib/rating-options';
 import {
     Drawer,
     DrawerDescription,
@@ -118,10 +119,14 @@ export function MediaDrawer({
             ...current,
             remindersEnabled: !current.remindersEnabled,
         }));
-        router.post(mediaReminder(drawerMedia.slug), {}, {
-            onError: () => restoreDrawerMedia(previousMedia),
-            preserveScroll: true,
-        });
+        router.post(
+            mediaReminder(drawerMedia.slug),
+            {},
+            {
+                onError: () => restoreDrawerMedia(previousMedia),
+                preserveScroll: true,
+            },
+        );
     }
 
     function follow(): void {
@@ -132,10 +137,14 @@ export function MediaDrawer({
         const previousMedia = drawerMedia;
 
         updateDrawerMedia((current) => ({ ...current, isFollowed: true }));
-        router.post(followMedia(drawerMedia.slug), {}, {
-            onError: () => restoreDrawerMedia(previousMedia),
-            preserveScroll: true,
-        });
+        router.post(
+            followMedia(drawerMedia.slug),
+            {},
+            {
+                onError: () => restoreDrawerMedia(previousMedia),
+                preserveScroll: true,
+            },
+        );
     }
 
     function feature(): void {
@@ -146,10 +155,14 @@ export function MediaDrawer({
         const previousMedia = drawerMedia;
 
         updateDrawerMedia((current) => ({ ...current, isFeatured: true }));
-        router.post(featureMedia(drawerMedia.slug), {}, {
-            onError: () => restoreDrawerMedia(previousMedia),
-            preserveScroll: true,
-        });
+        router.post(
+            featureMedia(drawerMedia.slug),
+            {},
+            {
+                onError: () => restoreDrawerMedia(previousMedia),
+                preserveScroll: true,
+            },
+        );
     }
 
     function rate(rating: number): void {
@@ -160,10 +173,14 @@ export function MediaDrawer({
         const previousMedia = drawerMedia;
 
         updateDrawerMedia((current) => ({ ...current, userRating: rating }));
-        router.post(rateMedia(drawerMedia.slug), { rating }, {
-            onError: () => restoreDrawerMedia(previousMedia),
-            preserveScroll: true,
-        });
+        router.post(
+            rateMedia(drawerMedia.slug),
+            { rating },
+            {
+                onError: () => restoreDrawerMedia(previousMedia),
+                preserveScroll: true,
+            },
+        );
     }
 
     return (
@@ -263,8 +280,8 @@ export function MediaDrawer({
                                     </Progress>
                                     <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
                                         <span>
-                                            {drawerMedia.releasedEpisodes} épisodes
-                                            publiés
+                                            {drawerMedia.releasedEpisodes}{' '}
+                                            épisodes publiés
                                         </span>
                                         {drawerMedia.seasonComplete && (
                                             <span>
@@ -360,7 +377,7 @@ export function MediaDrawer({
                                             ? `${drawerMedia.userRating}/10`
                                             : 'Noter'}
                                     </MenuTrigger>
-                                    <MenuPopup className="dark min-w-36">
+                                    <MenuPopup className="dark min-w-52">
                                         <MenuGroup>
                                             <MenuGroupLabel>
                                                 Votre note
@@ -374,15 +391,20 @@ export function MediaDrawer({
                                                     ''
                                                 }
                                             >
-                                                {Array.from(
-                                                    { length: 10 },
-                                                    (_, index) => index + 1,
-                                                ).map((rating) => (
+                                                {ratingOptions.map((rating) => (
                                                     <MenuRadioItem
-                                                        key={rating}
-                                                        value={rating.toString()}
+                                                        key={rating.value}
+                                                        value={rating.value.toString()}
                                                     >
-                                                        {rating}/10
+                                                        <span className="flex flex-1 items-center justify-between gap-6">
+                                                            <span>
+                                                                {rating.value}
+                                                                /10
+                                                            </span>
+                                                            <span className="text-muted-foreground">
+                                                                {rating.label}
+                                                            </span>
+                                                        </span>
                                                     </MenuRadioItem>
                                                 ))}
                                             </MenuRadioGroup>
@@ -392,8 +414,7 @@ export function MediaDrawer({
                             </div>
                             <Button
                                 disabled={
-                                    !drawerMedia.slug ||
-                                    drawerMedia.isFeatured
+                                    !drawerMedia.slug || drawerMedia.isFeatured
                                 }
                                 onClick={feature}
                                 variant={

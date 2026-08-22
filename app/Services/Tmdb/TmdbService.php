@@ -50,6 +50,16 @@ final class TmdbService
     }
 
     /**
+     * Récupère les séries les plus populaires de la semaine sur TMDB.
+     *
+     * @return array<string, mixed>
+     */
+    public function trendingSeries(): array
+    {
+        return $this->get('trending/tv/week');
+    }
+
+    /**
      * Récupère un film et ses métadonnées TMDB.
      *
      * @return array<string, mixed>

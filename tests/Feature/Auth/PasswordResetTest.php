@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
 beforeEach(function () {
@@ -13,6 +14,9 @@ test('reset password link screen can be rendered', function () {
     $response = $this->get(route('password.request'));
 
     $response->assertOk();
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('auth/forgot-password'));
 });
 
 test('reset password link can be requested', function () {

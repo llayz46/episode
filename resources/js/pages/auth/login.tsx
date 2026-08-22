@@ -27,7 +27,7 @@ export default function Login({ status, canResetPassword }: Props) {
                 <img
                     alt=""
                     className="absolute inset-0 size-full object-cover object-[58%_center] opacity-50"
-                    src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90"
+                    src="/images/login_background.webp"
                 />
                 <div className="absolute inset-0 bg-black/45" />
                 <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/30 to-black/65" />

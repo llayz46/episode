@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ratingOptions } from '@/lib/rating-options';
 import {
     Drawer,
     DrawerDescription,
@@ -117,10 +118,14 @@ export function CalendarEventDrawer({
                 remindersEnabled: !current.media.remindersEnabled,
             },
         }));
-        router.post(mediaReminder(calendarEvent.media.slug), {}, {
-            onError: () => restoreEvent(previousEvent),
-            preserveScroll: true,
-        });
+        router.post(
+            mediaReminder(calendarEvent.media.slug),
+            {},
+            {
+                onError: () => restoreEvent(previousEvent),
+                preserveScroll: true,
+            },
+        );
     }
 
     function rate(rating: number): void {
@@ -134,10 +139,14 @@ export function CalendarEventDrawer({
             ...current,
             media: { ...current.media, userRating: rating },
         }));
-        router.post(rateMedia(calendarEvent.media.slug), { rating }, {
-            onError: () => restoreEvent(previousEvent),
-            preserveScroll: true,
-        });
+        router.post(
+            rateMedia(calendarEvent.media.slug),
+            { rating },
+            {
+                onError: () => restoreEvent(previousEvent),
+                preserveScroll: true,
+            },
+        );
     }
 
     function feature(): void {
@@ -151,10 +160,14 @@ export function CalendarEventDrawer({
             ...current,
             media: { ...current.media, isFeatured: true },
         }));
-        router.post(featureMedia(calendarEvent.media.slug), {}, {
-            onError: () => restoreEvent(previousEvent),
-            preserveScroll: true,
-        });
+        router.post(
+            featureMedia(calendarEvent.media.slug),
+            {},
+            {
+                onError: () => restoreEvent(previousEvent),
+                preserveScroll: true,
+            },
+        );
     }
 
     return (
@@ -325,8 +338,8 @@ export function CalendarEventDrawer({
                                         <Star
                                             aria-hidden="true"
                                             className={
-                                                calendarEvent.media.userRating !==
-                                                null
+                                                calendarEvent.media
+                                                    .userRating !== null
                                                     ? 'fill-current'
                                                     : undefined
                                             }
@@ -335,7 +348,7 @@ export function CalendarEventDrawer({
                                             ? `${calendarEvent.media.userRating}/10`
                                             : 'Noter'}
                                     </MenuTrigger>
-                                    <MenuPopup className="dark min-w-36">
+                                    <MenuPopup className="dark min-w-52">
                                         <MenuGroup>
                                             <MenuGroupLabel>
                                                 Votre note
@@ -349,15 +362,20 @@ export function CalendarEventDrawer({
                                                     ''
                                                 }
                                             >
-                                                {Array.from(
-                                                    { length: 10 },
-                                                    (_, index) => index + 1,
-                                                ).map((rating) => (
+                                                {ratingOptions.map((rating) => (
                                                     <MenuRadioItem
-                                                        key={rating}
-                                                        value={rating.toString()}
+                                                        key={rating.value}
+                                                        value={rating.value.toString()}
                                                     >
-                                                        {rating}/10
+                                                        <span className="flex flex-1 items-center justify-between gap-6">
+                                                            <span>
+                                                                {rating.value}
+                                                                /10
+                                                            </span>
+                                                            <span className="text-muted-foreground">
+                                                                {rating.label}
+                                                            </span>
+                                                        </span>
                                                     </MenuRadioItem>
                                                 ))}
                                             </MenuRadioGroup>

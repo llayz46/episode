@@ -67,6 +67,20 @@ it('récupère un film', function (): void {
     ]);
 });
 
+it('récupère les séries tendance de la semaine', function (): void {
+    Http::fake([
+        'https://api.themoviedb.org/3/trending/tv/week*' => Http::response([
+            'results' => [['id' => 125988, 'name' => 'Silo']],
+        ]),
+    ]);
+
+    $series = app(TmdbService::class)->trendingSeries();
+
+    expect($series['results'][0]['name'])->toBe('Silo');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.themoviedb.org/3/trending/tv/week?language=fr-FR');
+});
+
 it('récupère une série et l’une de ses saisons et un épisode', function (): void {
     Http::fake([
         'https://api.themoviedb.org/3/tv/125988/season/3/episode/2*' => Http::response([

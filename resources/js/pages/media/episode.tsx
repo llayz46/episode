@@ -12,6 +12,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
+import { ratingOptions } from '@/lib/rating-options';
 import {
     Menu,
     MenuGroup,
@@ -252,7 +253,7 @@ export default function EpisodePage({
                                             ? `${episode.userRating}/10`
                                             : 'Noter'}
                                     </MenuTrigger>
-                                    <MenuPopup className="dark min-w-36">
+                                    <MenuPopup className="dark min-w-52">
                                         <MenuGroup>
                                             <MenuGroupLabel>
                                                 Votre note
@@ -273,15 +274,20 @@ export default function EpisodePage({
                                                     ''
                                                 }
                                             >
-                                                {Array.from(
-                                                    { length: 10 },
-                                                    (_, index) => index + 1,
-                                                ).map((rating) => (
+                                                {ratingOptions.map((rating) => (
                                                     <MenuRadioItem
-                                                        key={rating}
-                                                        value={rating.toString()}
+                                                        key={rating.value}
+                                                        value={rating.value.toString()}
                                                     >
-                                                        {rating}/10
+                                                        <span className="flex flex-1 items-center justify-between gap-6">
+                                                            <span>
+                                                                {rating.value}
+                                                                /10
+                                                            </span>
+                                                            <span className="text-muted-foreground">
+                                                                {rating.label}
+                                                            </span>
+                                                        </span>
                                                     </MenuRadioItem>
                                                 ))}
                                             </MenuRadioGroup>

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Home;
 
+use App\Actions\Tmdb\GetTrendingSeries;
 use App\Models\Episode;
 use App\Models\Media;
 use App\Models\Season;
@@ -16,6 +17,8 @@ class BuildHomeDashboard
     /**
      * @return array<string, mixed>
      */
+    public function __construct(private GetTrendingSeries $trendingSeries) {}
+
     public function handle(User $user): array
     {
         $libraryEntries = $user->mediaLibrary()
@@ -58,6 +61,7 @@ class BuildHomeDashboard
                 ->take(3)
                 ->values()
                 ->all(),
+            'trendingSeries' => $featuredMedia ? [] : $this->trendingSeries->handle(),
             'upcomingReleases' => $releases
                 ->take(5)
                 ->map(fn (array $release): array => $this->serializeRelease($release))

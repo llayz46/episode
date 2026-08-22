@@ -30,7 +30,12 @@ if (!window.episodeInertiaStarted) {
             switch (true) {
                 case name === 'home':
                     return SearchCommandLayout;
-                case name === 'auth/login':
+                case [
+                    'auth/login',
+                    'auth/register',
+                    'auth/forgot-password',
+                    'auth/two-factor-challenge',
+                ].includes(name):
                     return null;
                 case name.startsWith('auth/'):
                     return [SearchCommandLayout, AuthLayout];

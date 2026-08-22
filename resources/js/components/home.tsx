@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Bell, ChevronRight, CircleCheck, Play } from 'lucide-react';
 import { useState } from 'react';
+import { store as importMedia } from '@/actions/App/Http/Controllers/MediaImportController';
 import AppLogo from '@/components/app-logo';
 import { MediaDrawer } from '@/components/media-drawer';
 import type { MediaDrawerItem } from '@/components/media-drawer';
@@ -15,25 +16,21 @@ import { cn } from '@/lib/utils';
 import { calendar, collection } from '@/routes';
 import { reminder as mediaReminder, show as mediaShow } from '@/routes/media';
 
-const fallbackFeaturedMedia: MediaDrawerItem = {
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90',
-    kind: 'series',
-    nextEpisode: 'Prochain épisode · Vendredi 22 août',
-    platform: 'Apple TV+',
-    releasedEpisodes: 6,
-    seasonComplete: '12 septembre',
-    slug: 'silo-125988',
-    status: 'airing',
-    subtitle: 'Saison 3',
-    title: 'Silo',
-    totalEpisodes: 10,
-    year: '2025',
+type TrendingSeries = MediaDrawerItem & {
+    tmdbId: number;
 };
+
+function isTrendingSeries(
+    media: MediaDrawerItem | TrendingSeries | null,
+): media is TrendingSeries {
+    return media !== null && 'tmdbId' in media;
+}
 
 type HomeProps = {
     bingeReady: MediaDrawerItem[];
     featuredMedia: MediaDrawerItem | null;
     trackedMedia: MediaDrawerItem[];
+    trendingSeries: TrendingSeries[];
     upcomingReleases: Array<{
         date: string;
         episode: string;
@@ -72,13 +69,15 @@ export function Home({
     bingeReady,
     featuredMedia,
     trackedMedia,
+    trendingSeries,
     upcomingReleases,
     week,
 }: HomeProps) {
     const [selectedMedia, setSelectedMedia] = useState<MediaDrawerItem | null>(
         null,
     );
-    const featured = featuredMedia ?? fallbackFeaturedMedia;
+    const featured = featuredMedia ?? trendingSeries[0] ?? null;
+    const isTrending = isTrendingSeries(featured);
 
     return (
         <>
@@ -90,76 +89,126 @@ export function Home({
                             aria-labelledby="featured-title"
                             className="dark relative min-h-screen overflow-hidden bg-neutral-950 text-white"
                         >
-                            <img
-                                alt={`Image de ${featured.title}`}
-                                className="absolute inset-0 size-full object-cover object-center opacity-70"
-                                src={featured.image}
-                            />
+                            {featured && (
+                                <img
+                                    alt={`Image de ${featured.title}`}
+                                    className="absolute inset-0 size-full object-cover object-center opacity-70"
+                                    src={featured.image}
+                                />
+                            )}
                             <div className="absolute inset-0 bg-linear-to-r from-black via-black/45 to-transparent" />
                             <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/30" />
 
                             <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
                                 <AppLogo className="text-white" />
                                 <div className="mt-auto flex max-w-xl flex-col gap-6 pb-28 sm:pb-36">
-                                    <div className="flex flex-col gap-3">
-                                        <p className="text-sm font-medium tracking-[0.18em] text-white/60 uppercase">
-                                            {featured.platform} ·{' '}
-                                            {featured.year}
-                                        </p>
-                                        <h1
-                                            id="featured-title"
-                                            className="font-heading text-6xl font-semibold tracking-[-0.08em] sm:text-8xl"
-                                        >
-                                            {featured.title}
-                                        </h1>
-                                        <p className="max-w-md text-base leading-7 text-white/70">
-                                            {featured.status === 'airing'
-                                                ? (featured.nextEpisode ??
-                                                  'Diffusion en cours.')
-                                                : 'Disponible à regarder, à votre rythme.'}
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-wrap gap-3">
-                                        <Button
-                                            render={
-                                                <Link
-                                                    href={mediaShow(
-                                                        featured.slug ?? '',
-                                                    )}
-                                                    prefetch
-                                                />
-                                            }
-                                        >
-                                            <Play
-                                                aria-hidden="true"
-                                                className="fill-current"
-                                            />
-                                            Voir la série
-                                        </Button>
-                                        <Button
-                                            onClick={() =>
-                                                featured.slug &&
-                                                router.post(
-                                                    mediaReminder(
-                                                        featured.slug,
-                                                    ),
-                                                )
-                                            }
-                                            variant="secondary"
-                                        >
-                                            <Bell
-                                                aria-hidden="true"
-                                                className={
-                                                    featured.remindersEnabled
-                                                        ? 'fill-current'
-                                                        : undefined
-                                                }
-                                            />
-                                            {featured.remindersEnabled
-                                                ? 'Rappel activé'
-                                                : 'Me prévenir'}
-                                        </Button>
-                                    </div>
+                                    {featured ? (
+                                        <>
+                                            <div className="flex flex-col gap-3">
+                                                <p className="text-sm font-medium tracking-[0.18em] text-white/60 uppercase">
+                                                    {featured.platform} ·{' '}
+                                                    {featured.year}
+                                                </p>
+                                                <h1
+                                                    id="featured-title"
+                                                    className="font-heading text-6xl font-semibold tracking-[-0.08em] sm:text-8xl"
+                                                >
+                                                    {featured.title}
+                                                </h1>
+                                                <p className="max-w-md text-base leading-7 text-white/70">
+                                                    {isTrending
+                                                        ? (featured.description ??
+                                                          'Une série parmi les plus regardées cette semaine.')
+                                                        : featured.status ===
+                                                            'airing'
+                                                          ? (featured.nextEpisode ??
+                                                            'Diffusion en cours.')
+                                                          : 'Disponible à regarder, à votre rythme.'}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-3">
+                                                {isTrending ? (
+                                                    <Button
+                                                        onClick={() =>
+                                                            router.post(
+                                                                importMedia(),
+                                                                {
+                                                                    tmdb_id:
+                                                                        featured.tmdbId,
+                                                                    type: 'tv',
+                                                                },
+                                                            )
+                                                        }
+                                                    >
+                                                        <Play
+                                                            aria-hidden="true"
+                                                            className="fill-current"
+                                                        />
+                                                        Découvrir la série
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        render={
+                                                            <Link
+                                                                href={mediaShow(
+                                                                    featured.slug ??
+                                                                        '',
+                                                                )}
+                                                                prefetch
+                                                            />
+                                                        }
+                                                    >
+                                                        <Play
+                                                            aria-hidden="true"
+                                                            className="fill-current"
+                                                        />
+                                                        Voir la série
+                                                    </Button>
+                                                )}
+                                                {!isTrending && (
+                                                    <Button
+                                                        onClick={() =>
+                                                            featured.slug &&
+                                                            router.post(
+                                                                mediaReminder(
+                                                                    featured.slug,
+                                                                ),
+                                                            )
+                                                        }
+                                                        variant="secondary"
+                                                    >
+                                                        <Bell
+                                                            aria-hidden="true"
+                                                            className={
+                                                                featured.remindersEnabled
+                                                                    ? 'fill-current'
+                                                                    : undefined
+                                                            }
+                                                        />
+                                                        {featured.remindersEnabled
+                                                            ? 'Rappel activé'
+                                                            : 'Me prévenir'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col gap-3">
+                                            <p className="text-sm font-medium tracking-[0.18em] text-white/60 uppercase">
+                                                Votre collection
+                                            </p>
+                                            <h1
+                                                id="featured-title"
+                                                className="font-heading text-6xl font-semibold tracking-[-0.08em] sm:text-8xl"
+                                            >
+                                                À vous de choisir.
+                                            </h1>
+                                            <p className="max-w-md text-base leading-7 text-white/70">
+                                                Ajoutez une série pour la
+                                                retrouver ici.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 {trackedMedia.length > 0 && (
                                     <div className="absolute right-5 bottom-5 left-5 flex gap-3 overflow-x-auto sm:right-8 sm:bottom-8 sm:left-auto sm:w-[34rem] lg:right-12 lg:bottom-10">
@@ -211,7 +260,10 @@ export function Home({
                                     </div>
                                     <Button
                                         render={
-                                            <Link href={collection()} prefetch />
+                                            <Link
+                                                href={collection()}
+                                                prefetch
+                                            />
                                         }
                                         size="sm"
                                         variant="ghost"
@@ -308,7 +360,9 @@ export function Home({
                                                     type="button"
                                                 >
                                                     <time className="w-14 shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
-                                                        {releaseDate(release.date)}
+                                                        {releaseDate(
+                                                            release.date,
+                                                        )}
                                                     </time>
                                                     <img
                                                         alt=""
@@ -345,7 +399,9 @@ export function Home({
                                             </p>
                                             <p className="mt-1 font-heading text-4xl font-semibold tracking-[-0.05em]">
                                                 {week.releaseCount} sortie
-                                                {week.releaseCount > 1 ? 's' : ''}
+                                                {week.releaseCount > 1
+                                                    ? 's'
+                                                    : ''}
                                             </p>
                                         </div>
                                         <Button
@@ -380,7 +436,9 @@ export function Home({
                                                             : 'text-muted-foreground',
                                                     )}
                                                 >
-                                                    {toDate(weekDay.date).getDate()}
+                                                    {toDate(
+                                                        weekDay.date,
+                                                    ).getDate()}
                                                 </span>
                                             </div>
                                         ))}
@@ -392,26 +450,40 @@ export function Home({
                                                 <div>
                                                     <p className="font-medium">
                                                         {week.highlight.title} ·{' '}
-                                                        {week.highlight.subtitle}
+                                                        {
+                                                            week.highlight
+                                                                .subtitle
+                                                        }
                                                     </p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        {week.highlight.seasonComplete
+                                                        {week.highlight
+                                                            .seasonComplete
                                                             ? `Saison complète le ${week.highlight.seasonComplete}`
-                                                            : week.highlight.nextEpisode}
+                                                            : week.highlight
+                                                                  .nextEpisode}
                                                     </p>
                                                 </div>
                                                 <span className="text-sm font-medium tabular-nums">
-                                                    {week.highlight.releasedEpisodes}{' '}
+                                                    {
+                                                        week.highlight
+                                                            .releasedEpisodes
+                                                    }{' '}
                                                     /{' '}
-                                                    {week.highlight.totalEpisodes}
+                                                    {
+                                                        week.highlight
+                                                            .totalEpisodes
+                                                    }
                                                 </span>
                                             </div>
                                             <Progress
                                                 value={
-                                                    week.highlight.releasedEpisodes &&
+                                                    week.highlight
+                                                        .releasedEpisodes &&
                                                     week.highlight.totalEpisodes
-                                                        ? (week.highlight.releasedEpisodes /
-                                                              week.highlight.totalEpisodes) *
+                                                        ? (week.highlight
+                                                              .releasedEpisodes /
+                                                              week.highlight
+                                                                  .totalEpisodes) *
                                                           100
                                                         : 0
                                                 }
