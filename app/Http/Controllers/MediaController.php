@@ -5,27 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\Media;
 use App\Models\MediaCredit;
 use App\Models\Season;
+use App\Models\User;
+use App\Models\UserEpisode;
+use App\Models\UserMedia;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 class MediaController extends Controller
 {
-    public function show(string $slug): InertiaResponse
+    public function show(Request $request, string $slug): InertiaResponse
     {
-        return Inertia::render('media/show', [
-            'media' => $this->catalogueMedia($slug),
-        ]);
-    }
+        /** @var User $user */
+        $user = $request->user();
 
-    /**
-     * Affiche la direction Season Control de la fiche série.
-     */
-    public function seasonControl(string $slug): InertiaResponse
-    {
-        return Inertia::render('media/season-control', [
-            'media' => $this->catalogueMedia($slug),
+        return Inertia::render('media/show', [
+            'media' => $this->catalogueMedia($slug, $user),
         ]);
     }
 
@@ -88,7 +85,7 @@ class MediaController extends Controller
         ]);
     }
 
-    public function episode(string $slug, int $season, int $episode): InertiaResponse
+    public function episode(Request $request, string $slug, int $season, int $episode): InertiaResponse
     {
         $media = Media::query()
             ->where('slug', $slug)
@@ -105,6 +102,13 @@ class MediaController extends Controller
         if (! $selectedSeason || ! $selectedEpisode) {
             abort(404);
         }
+
+        /** @var User $user */
+        $user = $request->user();
+        $userEpisode = UserEpisode::query()
+            ->whereBelongsTo($user)
+            ->whereBelongsTo($selectedEpisode)
+            ->first();
 
         $episodeNumbers = $selectedSeason->episodes
             ->pluck('number')
@@ -129,11 +133,13 @@ class MediaController extends Controller
             ],
             'episode' => [
                 'airedOn' => $this->formatDate($selectedEpisode->aired_on),
+                'id' => $selectedEpisode->id,
                 'image' => $this->imageUrl($selectedEpisode->still_path, 'w1280')
                     ?? $this->imageUrl($media->backdrop_path, 'w1280')
                     ?? $this->imageUrl($media->poster_path, 'w780')
                     ?? '',
                 'isAvailable' => $selectedEpisode->aired_on?->lessThanOrEqualTo(now()->startOfDay()) ?? false,
+                'isWatched' => $userEpisode?->watched_at !== null,
                 'nextNumber' => $episodeNumbers
                     ->filter(fn (int $number): bool => $number > $selectedEpisode->number)
                     ->first(),
@@ -146,6 +152,7 @@ class MediaController extends Controller
                 'rating' => $selectedEpisode->vote_average !== null ? (float) $selectedEpisode->vote_average : null,
                 'runtime' => $selectedEpisode->runtime,
                 'title' => $selectedEpisode->title,
+                'userRating' => $userEpisode?->rating,
                 'voteCount' => $selectedEpisode->vote_count,
             ],
         ]);
@@ -154,12 +161,16 @@ class MediaController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function catalogueMedia(string $slug): array
+    private function catalogueMedia(string $slug, User $user): array
     {
         $media = Media::query()
             ->where('slug', $slug)
             ->with(['credits.person', 'seasons.episodes'])
             ->firstOrFail();
+        $libraryEntry = UserMedia::query()
+            ->whereBelongsTo($user)
+            ->whereBelongsTo($media)
+            ->first();
 
         $seasons = $media->seasons
             ->sortBy('number')
@@ -189,6 +200,7 @@ class MediaController extends Controller
                 ?? '',
             'cast' => $this->cast($media),
             'countryCode' => $this->countryCode($media->countries[0] ?? null),
+            'currentSeasonNumber' => $currentSeason?->number,
             'description' => $media->synopsis ?? 'Aucun synopsis n’est disponible pour le moment.',
             'episodeNavigation' => $seasonEpisodes
                 ->filter(fn ($episode): bool => $episode->still_path !== null)
@@ -217,6 +229,11 @@ class MediaController extends Controller
             'genres' => $media->genres ?? [],
             'kind' => $media->type === 'tv' ? 'series' : 'movie',
             'lastAirDate' => $this->formatDate($latestEpisode?->aired_on),
+            'library' => [
+                'isFeatured' => $libraryEntry?->is_featured ?? false,
+                'isFollowed' => $libraryEntry !== null,
+                'remindersEnabled' => $libraryEntry?->reminders_enabled ?? false,
+            ],
             'nextRelease' => $nextEpisode
                 ? "Épisode {$nextEpisode->number} · {$this->formatDate($nextEpisode->aired_on)}"
                 : 'Aucune sortie annoncée',

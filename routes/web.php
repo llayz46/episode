@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\EpisodeProgressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaImportController;
@@ -20,8 +21,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('media.follow');
     Route::post('media/{media:slug}/feature', [MediaLibraryController::class, 'feature'])
         ->name('media.feature');
-    Route::get('media/{slug}/season-control', [MediaController::class, 'seasonControl'])
-        ->name('media.season-control');
+    Route::post('media/{media:slug}/reminder', [MediaLibraryController::class, 'toggleReminder'])
+        ->name('media.reminder');
+    Route::post('media/{media:slug}/rating', [MediaLibraryController::class, 'rate'])
+        ->name('media.rating');
+    Route::post('episodes/{episode}/watched', [EpisodeProgressController::class, 'toggleWatched'])
+        ->name('episodes.watched');
+    Route::post('episodes/{episode}/rating', [EpisodeProgressController::class, 'rate'])
+        ->name('episodes.rating');
     Route::get('media/{slug}/seasons/{season}/episodes/{episode}', [MediaController::class, 'episode'])
         ->whereNumber(['season', 'episode'])
         ->name('media.episode');

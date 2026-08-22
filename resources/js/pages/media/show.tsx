@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Bell, Play } from 'lucide-react';
+import { Bell, Check, Play } from 'lucide-react';
 import type { ReactElement } from 'react';
 import AppLogo from '@/components/app-logo';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,6 @@ import {
     feature as featureMedia,
     follow as followMedia,
     season as mediaSeason,
-    seasonControl as mediaSeasonControl,
 } from '@/routes/media';
 import type { Media, Season } from '@/types/media';
 
@@ -134,9 +133,10 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                     <Button
                                         render={
                                             <Link
-                                                href={mediaSeasonControl(
-                                                    media.slug,
-                                                )}
+                                                href={mediaSeason({
+                                                    season: media.currentSeasonNumber ?? 1,
+                                                    slug: media.slug,
+                                                })}
                                                 prefetch
                                             />
                                         }
@@ -157,21 +157,37 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                     </Button>
                                 )}
                                 <Button
+                                    disabled={media.library.isFollowed}
                                     onClick={() =>
                                         router.post(followMedia(media.slug))
                                     }
                                     variant="secondary"
                                 >
-                                    <Bell aria-hidden="true" />
-                                    Suivre
+                                    {media.library.isFollowed ? (
+                                        <Check aria-hidden="true" />
+                                    ) : (
+                                        <Bell aria-hidden="true" />
+                                    )}
+                                    {media.library.isFollowed
+                                        ? 'Suivi'
+                                        : 'Suivre'}
                                 </Button>
                                 <Button
                                     onClick={() =>
                                         router.post(featureMedia(media.slug))
                                     }
-                                    variant="ghost"
+                                    variant={
+                                        media.library.isFeatured
+                                            ? 'secondary'
+                                            : 'outline'
+                                    }
                                 >
-                                    Mettre en avant
+                                    {media.library.isFeatured && (
+                                        <Check aria-hidden="true" />
+                                    )}
+                                    {media.library.isFeatured
+                                        ? 'En avant'
+                                        : 'Mettre en avant'}
                                 </Button>
                             </div>
                         </div>

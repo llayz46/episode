@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Bell, ChevronRight, CircleCheck, Play } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { show as mediaShow } from '@/routes/media';
+import { calendar, collection } from '@/routes';
+import { reminder as mediaReminder, show as mediaShow } from '@/routes/media';
 
 const fallbackFeaturedMedia: MediaDrawerItem = {
     image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=90',
@@ -29,119 +30,51 @@ const fallbackFeaturedMedia: MediaDrawerItem = {
     year: '2025',
 };
 
-const bingeReady: MediaDrawerItem[] = [
-    {
-        image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=700&q=80',
-        kind: 'series',
-        platform: 'Apple TV+',
-        status: 'binge-ready',
-        title: 'Severance',
-        subtitle: 'Saison 2 · 10 épisodes',
-        totalEpisodes: 10,
-        year: '2025',
-    },
-    {
-        image: 'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=700&q=80',
-        kind: 'series',
-        platform: 'Max',
-        status: 'binge-ready',
-        title: 'The Last of Us',
-        subtitle: 'Saison 2 · 7 épisodes',
-        totalEpisodes: 7,
-        year: '2025',
-    },
-    {
-        image: 'https://images.unsplash.com/photo-1586899028174-e7098604235b?auto=format&fit=crop&w=700&q=80',
-        kind: 'series',
-        platform: 'Disney+',
-        status: 'binge-ready',
-        title: 'Andor',
-        subtitle: 'Saison 2 · 12 épisodes',
-        totalEpisodes: 12,
-        year: '2025',
-    },
-    {
-        image: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?auto=format&fit=crop&w=700&q=80',
-        kind: 'series',
-        platform: 'Disney+',
-        status: 'binge-ready',
-        title: 'The Bear',
-        subtitle: 'Saison 4 · 10 épisodes',
-        totalEpisodes: 10,
-        year: '2025',
-    },
-    {
-        image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=700&q=80',
-        kind: 'series',
-        platform: 'Disney+',
-        status: 'binge-ready',
-        title: 'Shōgun',
-        subtitle: 'Saison 1 · 10 épisodes',
-        totalEpisodes: 10,
-        year: '2024',
-    },
-];
-
-const upcomingReleases = [
-    {
-        date: 'Ven. 22',
-        title: 'Silo',
-        episode: 'S3E07',
-        image: fallbackFeaturedMedia.image,
-        media: fallbackFeaturedMedia,
-    },
-    {
-        date: 'Lun. 25',
-        title: 'Alien: Earth',
-        episode: 'S1E04',
-        image: bingeReady[1].image,
-        media: {
-            image: bingeReady[1].image,
-            kind: 'series' as const,
-            nextEpisode: 'Prochain épisode · Lundi 25 août',
-            platform: 'Disney+',
-            releasedEpisodes: 4,
-            seasonComplete: '22 septembre',
-            status: 'airing' as const,
-            subtitle: 'Saison 1',
-            title: 'Alien: Earth',
-            totalEpisodes: 8,
-            year: '2025',
-        },
-    },
-    {
-        date: 'Jeu. 28',
-        title: 'The Thursday Murder Club',
-        episode: 'Film · VOD',
-        image: bingeReady[2].image,
-        media: {
-            image: bingeReady[2].image,
-            kind: 'film' as const,
-            platform: 'Netflix',
-            status: 'binge-ready' as const,
-            subtitle: 'Film · Disponible en VOD',
-            title: 'The Thursday Murder Club',
-            year: '2025',
-        },
-    },
-];
-
-const weekDays = [
-    { day: 'Ven', date: '22', hasRelease: true },
-    { day: 'Sam', date: '23', hasRelease: false },
-    { day: 'Dim', date: '24', hasRelease: false },
-    { day: 'Lun', date: '25', hasRelease: true },
-    { day: 'Mar', date: '26', hasRelease: false },
-    { day: 'Mer', date: '27', hasRelease: false },
-    { day: 'Jeu', date: '28', hasRelease: true },
-];
-
 type HomeProps = {
+    bingeReady: MediaDrawerItem[];
     featuredMedia: MediaDrawerItem | null;
     trackedMedia: MediaDrawerItem[];
+    upcomingReleases: Array<{
+        date: string;
+        episode: string;
+        image: string;
+        media: MediaDrawerItem;
+        title: string;
+    }>;
+    week: {
+        days: Array<{
+            date: string;
+            hasRelease: boolean;
+        }>;
+        highlight: MediaDrawerItem | null;
+        releaseCount: number;
+    };
 };
 
-export function Home({ featuredMedia, trackedMedia }: HomeProps) {
+function toDate(date: string): Date {
+    return new Date(`${date}T12:00:00`);
+}
+
+function weekday(date: string): string {
+    return new Intl.DateTimeFormat('fr-FR', { weekday: 'short' })
+        .format(toDate(date))
+        .replace('.', '');
+}
+
+function releaseDate(date: string): string {
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: 'numeric',
+        weekday: 'short',
+    }).format(toDate(date));
+}
+
+export function Home({
+    bingeReady,
+    featuredMedia,
+    trackedMedia,
+    upcomingReleases,
+    week,
+}: HomeProps) {
     const [selectedMedia, setSelectedMedia] = useState<MediaDrawerItem | null>(
         null,
     );
@@ -201,11 +134,30 @@ export function Home({ featuredMedia, trackedMedia }: HomeProps) {
                                                 aria-hidden="true"
                                                 className="fill-current"
                                             />
-                                            Voir le suivi
+                                            Voir la série
                                         </Button>
-                                        <Button variant="secondary">
-                                            <Bell aria-hidden="true" />
-                                            Me prévenir
+                                        <Button
+                                            onClick={() =>
+                                                featured.slug &&
+                                                router.post(
+                                                    mediaReminder(
+                                                        featured.slug,
+                                                    ),
+                                                )
+                                            }
+                                            variant="secondary"
+                                        >
+                                            <Bell
+                                                aria-hidden="true"
+                                                className={
+                                                    featured.remindersEnabled
+                                                        ? 'fill-current'
+                                                        : undefined
+                                                }
+                                            />
+                                            {featured.remindersEnabled
+                                                ? 'Rappel activé'
+                                                : 'Me prévenir'}
                                         </Button>
                                     </div>
                                 </div>
@@ -257,44 +209,58 @@ export function Home({ featuredMedia, trackedMedia }: HomeProps) {
                                             Prêtes à binge
                                         </h2>
                                     </div>
-                                    <Button size="sm" variant="ghost">
+                                    <Button
+                                        render={
+                                            <Link href={collection()} prefetch />
+                                        }
+                                        size="sm"
+                                        variant="ghost"
+                                    >
                                         Tout voir
                                         <ChevronRight aria-hidden="true" />
                                     </Button>
                                 </div>
-                                <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
-                                    {bingeReady.map((show) => (
-                                        <button
-                                            className="w-36 shrink-0 snap-start text-left sm:w-44"
-                                            key={show.title}
-                                            onClick={() =>
-                                                setSelectedMedia(show)
-                                            }
-                                            type="button"
-                                        >
-                                            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-muted shadow-sm">
-                                                <img
-                                                    alt={`Poster de ${show.title}`}
-                                                    className="size-full object-cover transition duration-500 hover:scale-105"
-                                                    src={show.image}
-                                                />
-                                            </div>
-                                            <span className="mt-3 block truncate font-medium">
-                                                {show.title}
-                                            </span>
-                                            <span className="block text-sm text-muted-foreground">
-                                                {show.subtitle}
-                                            </span>
-                                            <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                                                <CircleCheck
-                                                    aria-hidden="true"
-                                                    className="size-3.5"
-                                                />
-                                                Prête à binge
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
+                                {bingeReady.length > 0 ? (
+                                    <div className="-mx-5 flex snap-x gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+                                        {bingeReady.map((show) => (
+                                            <button
+                                                className="w-36 shrink-0 snap-start text-left sm:w-44"
+                                                key={show.slug ?? show.title}
+                                                onClick={() =>
+                                                    setSelectedMedia(show)
+                                                }
+                                                type="button"
+                                            >
+                                                <div className="aspect-[2/3] overflow-hidden rounded-xl bg-muted shadow-sm">
+                                                    <img
+                                                        alt={`Poster de ${show.title}`}
+                                                        className="size-full object-cover transition duration-500 hover:scale-105"
+                                                        src={show.image}
+                                                    />
+                                                </div>
+                                                <span className="mt-3 block truncate font-medium">
+                                                    {show.title}
+                                                </span>
+                                                <span className="block text-sm text-muted-foreground">
+                                                    {show.subtitle}
+                                                </span>
+                                                <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                                    <CircleCheck
+                                                        aria-hidden="true"
+                                                        className="size-3.5"
+                                                    />
+                                                    Prête à binge
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        Les séries complètes et les films déjà
+                                        sortis de votre collection apparaîtront
+                                        ici.
+                                    </p>
+                                )}
                             </section>
 
                             <section
@@ -314,46 +280,62 @@ export function Home({ featuredMedia, trackedMedia }: HomeProps) {
                                                 Prochaines sorties
                                             </h2>
                                         </div>
-                                        <Button size="sm" variant="ghost">
+                                        <Button
+                                            render={
+                                                <Link
+                                                    href={calendar()}
+                                                    prefetch
+                                                />
+                                            }
+                                            size="sm"
+                                            variant="ghost"
+                                        >
                                             Calendrier
                                             <ChevronRight aria-hidden="true" />
                                         </Button>
                                     </div>
-                                    <div className="flex flex-col divide-y rounded-2xl border bg-card/40 px-5">
-                                        {upcomingReleases.map((release) => (
-                                            <button
-                                                className="flex w-full items-center gap-4 py-4 text-left"
-                                                key={`${release.title}-${release.episode}`}
-                                                onClick={() =>
-                                                    setSelectedMedia(
-                                                        release.media,
-                                                    )
-                                                }
-                                                type="button"
-                                            >
-                                                <time className="w-14 shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
-                                                    {release.date}
-                                                </time>
-                                                <img
-                                                    alt=""
-                                                    className="size-11 rounded-xl object-cover"
-                                                    src={release.image}
-                                                />
-                                                <div className="min-w-0 flex-1">
-                                                    <h3 className="truncate font-medium">
-                                                        {release.title}
-                                                    </h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {release.episode}
-                                                    </p>
-                                                </div>
-                                                <ChevronRight
-                                                    aria-hidden="true"
-                                                    className="size-4 text-muted-foreground"
-                                                />
-                                            </button>
-                                        ))}
-                                    </div>
+                                    {upcomingReleases.length > 0 ? (
+                                        <div className="flex flex-col divide-y rounded-2xl border bg-card/40 px-5">
+                                            {upcomingReleases.map((release) => (
+                                                <button
+                                                    className="flex w-full items-center gap-4 py-4 text-left"
+                                                    key={`${release.date}-${release.media.slug}-${release.episode}`}
+                                                    onClick={() =>
+                                                        setSelectedMedia(
+                                                            release.media,
+                                                        )
+                                                    }
+                                                    type="button"
+                                                >
+                                                    <time className="w-14 shrink-0 text-sm font-medium text-muted-foreground tabular-nums">
+                                                        {releaseDate(release.date)}
+                                                    </time>
+                                                    <img
+                                                        alt=""
+                                                        className="size-11 rounded-xl object-cover"
+                                                        src={release.image}
+                                                    />
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="truncate font-medium">
+                                                            {release.title}
+                                                        </h3>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {release.episode}
+                                                        </p>
+                                                    </div>
+                                                    <ChevronRight
+                                                        aria-hidden="true"
+                                                        className="size-4 text-muted-foreground"
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            Aucune sortie à venir parmi les
+                                            séries et films que vous suivez.
+                                        </p>
+                                    )}
                                 </div>
                                 <aside className="flex flex-col gap-6 rounded-3xl border bg-card p-6 shadow-sm">
                                     <div className="flex items-start justify-between gap-4">
@@ -362,23 +344,33 @@ export function Home({ featuredMedia, trackedMedia }: HomeProps) {
                                                 Cette semaine
                                             </p>
                                             <p className="mt-1 font-heading text-4xl font-semibold tracking-[-0.05em]">
-                                                3 sorties
+                                                {week.releaseCount} sortie
+                                                {week.releaseCount > 1 ? 's' : ''}
                                             </p>
                                         </div>
-                                        <Button size="sm" variant="ghost">
+                                        <Button
+                                            render={
+                                                <Link
+                                                    href={calendar()}
+                                                    prefetch
+                                                />
+                                            }
+                                            size="sm"
+                                            variant="ghost"
+                                        >
                                             Voir tout
                                             <ChevronRight aria-hidden="true" />
                                         </Button>
                                     </div>
 
                                     <div className="grid grid-cols-7 gap-1">
-                                        {weekDays.map((weekDay) => (
+                                        {week.days.map((weekDay) => (
                                             <div
                                                 className="flex flex-col items-center gap-1.5"
                                                 key={weekDay.date}
                                             >
                                                 <span className="text-[0.65rem] text-muted-foreground uppercase">
-                                                    {weekDay.day}
+                                                    {weekday(weekDay.date)}
                                                 </span>
                                                 <span
                                                     className={cn(
@@ -388,33 +380,53 @@ export function Home({ featuredMedia, trackedMedia }: HomeProps) {
                                                             : 'text-muted-foreground',
                                                     )}
                                                 >
-                                                    {weekDay.date}
+                                                    {toDate(weekDay.date).getDate()}
                                                 </span>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <div className="flex flex-col gap-3 rounded-2xl bg-muted/70 p-4">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-medium">
-                                                    Silo · Saison 3
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Prête à binge le 12
-                                                    septembre
-                                                </p>
+                                    {week.highlight ? (
+                                        <div className="flex flex-col gap-3 rounded-2xl bg-muted/70 p-4">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div>
+                                                    <p className="font-medium">
+                                                        {week.highlight.title} ·{' '}
+                                                        {week.highlight.subtitle}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {week.highlight.seasonComplete
+                                                            ? `Saison complète le ${week.highlight.seasonComplete}`
+                                                            : week.highlight.nextEpisode}
+                                                    </p>
+                                                </div>
+                                                <span className="text-sm font-medium tabular-nums">
+                                                    {week.highlight.releasedEpisodes}{' '}
+                                                    /{' '}
+                                                    {week.highlight.totalEpisodes}
+                                                </span>
                                             </div>
-                                            <span className="text-sm font-medium tabular-nums">
-                                                6 / 10
-                                            </span>
+                                            <Progress
+                                                value={
+                                                    week.highlight.releasedEpisodes &&
+                                                    week.highlight.totalEpisodes
+                                                        ? (week.highlight.releasedEpisodes /
+                                                              week.highlight.totalEpisodes) *
+                                                          100
+                                                        : 0
+                                                }
+                                            >
+                                                <ProgressTrack>
+                                                    <ProgressIndicator />
+                                                </ProgressTrack>
+                                            </Progress>
                                         </div>
-                                        <Progress value={60}>
-                                            <ProgressTrack>
-                                                <ProgressIndicator />
-                                            </ProgressTrack>
-                                        </Progress>
-                                    </div>
+                                    ) : (
+                                        <p className="rounded-2xl bg-muted/70 p-4 text-sm text-muted-foreground">
+                                            Suivez une série en diffusion pour
+                                            voir sa progression ici.
+                                        </p>
+                                    )}
                                 </aside>
                             </section>
                         </div>

@@ -1,14 +1,8 @@
+import type { ComponentProps, ReactElement } from 'react';
 import { Home } from '@/components/home';
-import type { MediaDrawerItem } from '@/components/media-drawer';
 
-type HomePageProps = {
-    featuredMedia: MediaDrawerItem | null;
-    trackedMedia: MediaDrawerItem[];
-};
+type HomePageProps = ComponentProps<typeof Home>;
 
-export default function HomePage({
-    featuredMedia,
-    trackedMedia,
-}: HomePageProps) {
-    return <Home featuredMedia={featuredMedia} trackedMedia={trackedMedia} />;
+export default function HomePage(props: HomePageProps): ReactElement {
+    return <Home {...props} />;
 }

@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Episode;
 use App\Models\Media;
+use App\Models\Season;
 use App\Models\User;
 use App\Models\UserMedia;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -18,7 +20,10 @@ test('authenticated users can visit the home page', function () {
     $response->assertInertia(fn (Assert $page) => $page
         ->component('home')
         ->where('featuredMedia', null)
-        ->has('trackedMedia', 0));
+        ->has('trackedMedia', 0)
+        ->has('bingeReady', 0)
+        ->has('upcomingReleases', 0)
+        ->where('week.releaseCount', 0));
 });
 
 test('authenticated users can visit their collection', function () {
@@ -72,6 +77,73 @@ test('the home page prioritizes the user featured media and followed media', fun
             ->where('trackedMedia.1.title', 'Severance'));
 });
 
+test('the home page derives binge-ready media and upcoming releases from the user library', function () {
+    $user = User::factory()->create();
+    $airingMedia = Media::factory()->create([
+        'slug' => 'silo-125988',
+        'title' => 'Silo',
+        'type' => 'tv',
+    ]);
+    $airingSeason = Season::factory()->for($airingMedia)->create([
+        'episode_count' => 2,
+        'number' => 1,
+    ]);
+    Episode::factory()->for($airingSeason)->create([
+        'aired_on' => now()->subWeek(),
+        'number' => 1,
+    ]);
+    Episode::factory()->for($airingSeason)->create([
+        'aired_on' => now()->addDays(2),
+        'number' => 2,
+        'title' => 'Le prochain épisode',
+    ]);
+    $bingeReadyMedia = Media::factory()->create([
+        'slug' => 'severance-95396',
+        'title' => 'Severance',
+        'type' => 'tv',
+    ]);
+    $bingeReadySeason = Season::factory()->for($bingeReadyMedia)->create([
+        'episode_count' => 2,
+        'number' => 1,
+    ]);
+    Episode::factory()->for($bingeReadySeason)->create([
+        'aired_on' => now()->subDays(2),
+        'number' => 1,
+    ]);
+    Episode::factory()->for($bingeReadySeason)->create([
+        'aired_on' => now()->subDay(),
+        'number' => 2,
+    ]);
+    $upcomingFilm = Media::factory()->create([
+        'released_on' => now()->addDays(3),
+        'slug' => 'the-thursday-murder-club-502356',
+        'title' => 'The Thursday Murder Club',
+        'type' => 'movie',
+    ]);
+    UserMedia::factory()->for($user)->for($airingMedia)->create([
+        'is_featured' => true,
+        'status' => 'following',
+    ]);
+    UserMedia::factory()->for($user)->for($bingeReadyMedia)->create([
+        'rating' => 9,
+        'status' => 'watchlist',
+    ]);
+    UserMedia::factory()->for($user)->for($upcomingFilm)->create([
+        'status' => 'following',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('bingeReady.0.title', 'Severance')
+            ->where('bingeReady.0.userRating', 9)
+            ->where('upcomingReleases.0.title', 'Silo')
+            ->where('upcomingReleases.0.episode', 'S01E02')
+            ->where('upcomingReleases.1.title', 'The Thursday Murder Club')
+            ->where('week.highlight.title', 'Silo')
+            ->where('week.releaseCount', 2));
+});
+
 test('a user can set a media as their home featured media', function () {
     $user = User::factory()->create();
     $previousMedia = Media::factory()->create();
@@ -112,6 +184,48 @@ test('a user can follow media for their home dashboard', function () {
         ->first())
         ->status->toBe('following')
         ->is_featured->toBeFalse();
+});
+
+test('a user can rate media from their library', function () {
+    $user = User::factory()->create();
+    $media = Media::factory()->create(['slug' => 'severance-95396']);
+
+    $this->actingAs($user)
+        ->post(route('media.rating', $media->slug), ['rating' => 9])
+        ->assertRedirect();
+
+    expect(UserMedia::query()
+        ->whereBelongsTo($user)
+        ->whereBelongsTo($media)
+        ->first())
+        ->rating->toBe(9)
+        ->status->toBe('watchlist');
+});
+
+test('a user can toggle reminders for a followed media', function () {
+    $user = User::factory()->create();
+    $media = Media::factory()->create(['slug' => 'silo-125988']);
+
+    $this->actingAs($user)
+        ->post(route('media.reminder', $media->slug))
+        ->assertRedirect();
+
+    expect(UserMedia::query()
+        ->where('user_id', $user->id)
+        ->where('media_id', $media->id)
+        ->first())
+        ->status->toBe('following')
+        ->reminders_enabled->toBeTrue();
+
+    $this->actingAs($user)
+        ->post(route('media.reminder', $media->slug))
+        ->assertRedirect();
+
+    expect(UserMedia::query()
+        ->where('user_id', $user->id)
+        ->where('media_id', $media->id)
+        ->first())
+        ->reminders_enabled->toBeFalse();
 });
 
 test('the previous dashboard URL redirects to the home page', function () {

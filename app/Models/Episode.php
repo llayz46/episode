@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'season_id',
@@ -44,5 +45,13 @@ class Episode extends Model
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class);
+    }
+
+    /**
+     * @return HasMany<UserEpisode, $this>
+     */
+    public function userProgress(): HasMany
+    {
+        return $this->hasMany(UserEpisode::class);
     }
 }

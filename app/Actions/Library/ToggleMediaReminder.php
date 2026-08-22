@@ -6,9 +6,9 @@ use App\Models\Media;
 use App\Models\User;
 use App\Models\UserMedia;
 
-class FollowMedia
+class ToggleMediaReminder
 {
-    public function handle(User $user, Media $media): void
+    public function handle(User $user, Media $media): bool
     {
         $entry = UserMedia::query()->firstOrCreate(
             [
@@ -18,8 +18,8 @@ class FollowMedia
             ['status' => 'following'],
         );
 
-        if ($entry->status === 'watchlist') {
-            $entry->update(['status' => 'following']);
-        }
+        $entry->update(['reminders_enabled' => ! $entry->reminders_enabled]);
+
+        return $entry->reminders_enabled;
     }
 }

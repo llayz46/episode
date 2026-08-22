@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Check, ChevronLeft, ChevronRight, Clock3, Star } from 'lucide-react';
 import type { ReactElement } from 'react';
 import AppLogo from '@/components/app-logo';
@@ -12,8 +12,21 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
+import {
+    Menu,
+    MenuGroup,
+    MenuGroupLabel,
+    MenuPopup,
+    MenuRadioGroup,
+    MenuRadioItem,
+    MenuTrigger,
+} from '@/components/ui/menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { home } from '@/routes';
+import {
+    rating as rateEpisode,
+    watched as toggleEpisodeWatched,
+} from '@/routes/episodes';
 import {
     episode as mediaEpisode,
     season as mediaSeason,
@@ -199,14 +212,82 @@ export default function EpisodePage({
                             </p>
 
                             <div className="mt-7 flex flex-wrap gap-3">
-                                <Button>
-                                    <Check aria-hidden="true" />
-                                    Marquer comme vu
+                                <Button
+                                    onClick={() =>
+                                        router.post(
+                                            toggleEpisodeWatched(episode.id),
+                                        )
+                                    }
+                                    variant={
+                                        episode.isWatched
+                                            ? 'secondary'
+                                            : 'default'
+                                    }
+                                >
+                                    <Check
+                                        aria-hidden="true"
+                                        className={
+                                            episode.isWatched
+                                                ? 'fill-current'
+                                                : undefined
+                                        }
+                                    />
+                                    {episode.isWatched
+                                        ? 'Vu'
+                                        : 'Marquer comme vu'}
                                 </Button>
-                                <Button variant="secondary">
-                                    <Star aria-hidden="true" />
-                                    Noter
-                                </Button>
+                                <Menu>
+                                    <MenuTrigger
+                                        render={<Button variant="secondary" />}
+                                    >
+                                        <Star
+                                            aria-hidden="true"
+                                            className={
+                                                episode.userRating !== null
+                                                    ? 'fill-current'
+                                                    : undefined
+                                            }
+                                        />
+                                        {episode.userRating !== null
+                                            ? `${episode.userRating}/10`
+                                            : 'Noter'}
+                                    </MenuTrigger>
+                                    <MenuPopup className="dark min-w-36">
+                                        <MenuGroup>
+                                            <MenuGroupLabel>
+                                                Votre note
+                                            </MenuGroupLabel>
+                                            <MenuRadioGroup
+                                                onValueChange={(value) =>
+                                                    router.post(
+                                                        rateEpisode(episode.id),
+                                                        {
+                                                            rating: Number(
+                                                                value,
+                                                            ),
+                                                        },
+                                                    )
+                                                }
+                                                value={
+                                                    episode.userRating?.toString() ??
+                                                    ''
+                                                }
+                                            >
+                                                {Array.from(
+                                                    { length: 10 },
+                                                    (_, index) => index + 1,
+                                                ).map((rating) => (
+                                                    <MenuRadioItem
+                                                        key={rating}
+                                                        value={rating.toString()}
+                                                    >
+                                                        {rating}/10
+                                                    </MenuRadioItem>
+                                                ))}
+                                            </MenuRadioGroup>
+                                        </MenuGroup>
+                                    </MenuPopup>
+                                </Menu>
                             </div>
 
                             <div className="mt-8 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/10 pt-5">

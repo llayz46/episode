@@ -44,6 +44,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * @return HasMany<UserEpisode, $this>
+     */
+    public function episodeProgress(): HasMany
+    {
+        return $this->hasMany(UserEpisode::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

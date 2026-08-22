@@ -51,8 +51,10 @@ export type MediaSeason = {
 
 export type MediaEpisode = {
     airedOn: string | null;
+    id: number;
     image: string;
     isAvailable: boolean;
+    isWatched: boolean;
     nextNumber: number | null;
     number: number;
     overview: string;
@@ -60,6 +62,7 @@ export type MediaEpisode = {
     rating: number | null;
     runtime: number | null;
     title: string;
+    userRating: number | null;
     voteCount: number;
 };
 
@@ -67,6 +70,7 @@ export type Media = {
     backdrop: string;
     cast: CastMember[];
     countryCode?: string;
+    currentSeasonNumber: number | null;
     creator?: {
         image: string;
         name: string;
@@ -78,6 +82,11 @@ export type Media = {
     genres: string[];
     kind: 'movie' | 'series';
     lastAirDate?: string;
+    library: {
+        isFeatured: boolean;
+        isFollowed: boolean;
+        remindersEnabled: boolean;
+    };
     nextRelease: string;
     platform: string;
     poster: string;

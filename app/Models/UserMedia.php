@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'media_id',
     'status',
     'is_featured',
+    'reminders_enabled',
+    'rating',
     'started_at',
     'completed_at',
 ])]
@@ -20,6 +22,11 @@ class UserMedia extends Model
 {
     /** @use HasFactory<UserMediaFactory> */
     use HasFactory;
+
+    /** @var array<string, bool> */
+    protected $attributes = [
+        'reminders_enabled' => false,
+    ];
 
     /**
      * @return array<string, string>
@@ -29,6 +36,8 @@ class UserMedia extends Model
         return [
             'completed_at' => 'datetime',
             'is_featured' => 'boolean',
+            'reminders_enabled' => 'boolean',
+            'rating' => 'integer',
             'started_at' => 'datetime',
         ];
     }

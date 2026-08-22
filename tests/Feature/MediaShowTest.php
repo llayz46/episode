@@ -4,6 +4,8 @@ use App\Models\Episode;
 use App\Models\Media;
 use App\Models\Season;
 use App\Models\User;
+use App\Models\UserEpisode;
+use App\Models\UserMedia;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to the login page from a media page', function () {
@@ -28,11 +30,21 @@ test('authenticated users can view a series page', function () {
         'aired_on' => now()->subDay(),
     ]);
 
-    $this->actingAs(User::factory()->create())
+    $user = User::factory()->create();
+    UserMedia::factory()->for($user)->for($series)->create([
+        'is_featured' => true,
+        'reminders_enabled' => true,
+        'status' => 'following',
+    ]);
+
+    $this->actingAs($user)
         ->get(route('media.show', $series->slug))
         ->assertInertia(fn (Assert $page) => $page
             ->component('media/show')
             ->where('media.kind', 'series')
+            ->where('media.library.isFeatured', true)
+            ->where('media.library.isFollowed', true)
+            ->where('media.library.remindersEnabled', true)
             ->where('media.title', 'Silo'));
 });
 
@@ -51,7 +63,7 @@ test('authenticated users can view a film page', function () {
             ->where('media.title', 'The Thursday Murder Club'));
 });
 
-test('authenticated users can view the season control direction', function () {
+test('authenticated users can access the current season from a series page', function () {
     $series = Media::factory()->create([
         'type' => 'tv',
         'title' => 'Silo',
@@ -70,12 +82,11 @@ test('authenticated users can view the season control direction', function () {
     Season::factory()->for($series)->create(['number' => 4]);
 
     $this->actingAs(User::factory()->create())
-        ->get(route('media.season-control', $series->slug))
+        ->get(route('media.show', $series->slug))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('media/season-control')
+            ->component('media/show')
             ->where('media.title', 'Silo')
-            ->where('media.episodeNavigation.0.code', 'S03E07')
-            ->where('media.episodeNavigation.0.title', 'Radio'));
+            ->where('media.currentSeasonNumber', 3));
 });
 
 test('authenticated users can view a season and its episodes', function () {
@@ -134,7 +145,7 @@ test('authenticated users can view an episode', function () {
         'number' => 4,
         'title' => 'L’ombre',
     ]);
-    Episode::factory()->for($season)->create([
+    $selectedEpisode = Episode::factory()->for($season)->create([
         'number' => 5,
         'title' => 'Le passage',
         'synopsis' => 'Juliette découvre un nouveau passage.',
@@ -149,7 +160,13 @@ test('authenticated users can view an episode', function () {
         'title' => 'La porte',
     ]);
 
-    $this->actingAs(User::factory()->create())
+    $user = User::factory()->create();
+    UserEpisode::factory()->for($user)->for($selectedEpisode)->create([
+        'rating' => 8,
+        'watched_at' => now(),
+    ]);
+
+    $this->actingAs($user)
         ->get(route('media.episode', [
             'slug' => $series->slug,
             'season' => $season->number,
@@ -163,8 +180,35 @@ test('authenticated users can view an episode', function () {
             ->where('episode.number', 5)
             ->where('episode.previousNumber', 4)
             ->where('episode.nextNumber', 6)
+            ->where('episode.isWatched', true)
             ->where('episode.runtime', 55)
+            ->where('episode.userRating', 8)
             ->where('episode.voteCount', 1245));
+});
+
+test('a user can mark an episode as watched and rate it', function () {
+    $user = User::factory()->create();
+    $episode = Episode::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('episodes.watched', $episode))
+        ->assertRedirect();
+
+    expect(UserEpisode::query()
+        ->where('user_id', $user->id)
+        ->where('episode_id', $episode->id)
+        ->first())
+        ->watched_at->not->toBeNull();
+
+    $this->actingAs($user)
+        ->post(route('episodes.rating', $episode), ['rating' => 9])
+        ->assertRedirect();
+
+    expect(UserEpisode::query()
+        ->where('user_id', $user->id)
+        ->where('episode_id', $episode->id)
+        ->first())
+        ->rating->toBe(9);
 });
 
 test('an unknown media page returns a not found response', function () {

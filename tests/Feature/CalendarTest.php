@@ -14,8 +14,10 @@ test('the calendar only includes releases from the authenticated user library', 
     try {
         $user = User::factory()->create();
         $followedSeries = Media::factory()->create([
+            'genres' => ['drama'],
             'networks' => ['Apple TV+'],
             'slug' => 'silo-125988',
+            'synopsis' => 'Les survivants vivent sous terre.',
             'title' => 'Silo',
             'type' => 'tv',
         ]);
@@ -25,9 +27,16 @@ test('the calendar only includes releases from the authenticated user library', 
         Episode::factory()->for($followedSeason)->create([
             'aired_on' => '2026-08-22',
             'number' => 7,
+            'runtime' => 52,
+            'synopsis' => 'Juliette revient dans le silo.',
             'title' => 'La radio',
+            'vote_average' => 8.3,
+            'vote_count' => 1250,
         ]);
         UserMedia::factory()->for($user)->for($followedSeries)->create([
+            'is_featured' => true,
+            'rating' => 9,
+            'reminders_enabled' => true,
             'status' => 'following',
         ]);
 
@@ -65,6 +74,13 @@ test('the calendar only includes releases from the authenticated user library', 
                 ->where('events.0.image', 'https://image.tmdb.org/t/p/w780/episode.jpg')
                 ->where('events.0.media.title', 'Silo')
                 ->where('events.0.media.image', 'https://image.tmdb.org/t/p/w342/poster.jpg')
+                ->where('events.0.media.description', 'Les survivants vivent sous terre.')
+                ->where('events.0.media.isFeatured', true)
+                ->where('events.0.media.remindersEnabled', true)
+                ->where('events.0.media.userRating', 9)
+                ->where('events.0.overview', 'Juliette revient dans le silo.')
+                ->where('events.0.runtime', 52)
+                ->where('events.0.voteAverage', 8.3)
                 ->where('events.1.kind', 'movie')
                 ->where('events.1.media.title', 'The Thursday Murder Club'));
 
