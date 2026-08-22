@@ -28,7 +28,9 @@ RUN composer install \
 # Frontend
 # PHP existe maintenant, donc Wayfinder peut exécuter
 # "php artisan wayfinder:generate"
-RUN npm ci && npm run build
+RUN corepack enable \
+    && pnpm install --frozen-lockfile \
+    && pnpm build
 
 # Permissions Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache \
