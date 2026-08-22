@@ -11,7 +11,7 @@ import { useSearchCommand } from '@/components/search-command';
 import { Button } from '@/components/ui/button';
 import { Menu, MenuPopup, MenuTrigger } from '@/components/ui/menu';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { home } from '@/routes';
+import { calendar, collection, home } from '@/routes';
 import type { Auth } from '@/types';
 
 const toolbarItems = [
@@ -19,7 +19,7 @@ const toolbarItems = [
     { icon: Compass, label: 'Découvrir' },
     { icon: CalendarDays, label: 'Calendrier' },
     { icon: Search, label: 'Rechercher' },
-    { icon: LibraryBig, label: 'Bibliothèque' },
+    { icon: LibraryBig, label: 'Collection' },
     { icon: CircleUserRound, label: 'Profil' },
 ];
 
@@ -77,6 +77,42 @@ export function FloatingToolbar() {
                                 size="icon-lg"
                                 variant={
                                     component === 'home' ? 'glass' : 'ghost'
+                                }
+                            >
+                                <Icon aria-hidden="true" />
+                                <span className="sr-only">{label}</span>
+                            </Button>
+                        );
+                    }
+
+                    if (label === 'Collection') {
+                        return (
+                            <Button
+                                aria-label={label}
+                                key={label}
+                                render={<Link href={collection()} prefetch />}
+                                size="icon-lg"
+                                variant={
+                                    component === 'collection'
+                                        ? 'glass'
+                                        : 'ghost'
+                                }
+                            >
+                                <Icon aria-hidden="true" />
+                                <span className="sr-only">{label}</span>
+                            </Button>
+                        );
+                    }
+
+                    if (label === 'Calendrier') {
+                        return (
+                            <Button
+                                aria-label={label}
+                                key={label}
+                                render={<Link href={calendar()} prefetch />}
+                                size="icon-lg"
+                                variant={
+                                    component === 'calendar' ? 'glass' : 'ghost'
                                 }
                             >
                                 <Icon aria-hidden="true" />

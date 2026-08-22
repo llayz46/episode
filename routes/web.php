@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaImportController;
@@ -9,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', HomeController::class)->name('home');
+    Route::get('calendar', CalendarController::class)->name('calendar');
+    Route::get('collection', CollectionController::class)->name('collection');
     Route::redirect('dashboard', '/')->name('dashboard');
     Route::get('tmdb/search', TmdbSearchController::class)->name('tmdb.search');
     Route::post('media/import', [MediaImportController::class, 'store'])->name('media.import');

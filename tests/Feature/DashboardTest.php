@@ -21,6 +21,27 @@ test('authenticated users can visit the home page', function () {
         ->has('trackedMedia', 0));
 });
 
+test('authenticated users can visit their collection', function () {
+    $user = User::factory()->create();
+    $media = Media::factory()->create([
+        'slug' => 'silo-125988',
+        'title' => 'Silo',
+    ]);
+    UserMedia::factory()->for($user)->for($media)->create([
+        'is_featured' => true,
+        'status' => 'following',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('collection'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('collection')
+            ->where('total', 1)
+            ->where('items.0.title', 'Silo')
+            ->where('items.0.libraryStatus', 'following')
+            ->where('items.0.isFeatured', true));
+});
+
 test('the home page prioritizes the user featured media and followed media', function () {
     $user = User::factory()->create();
     $featuredMedia = Media::factory()->create([
