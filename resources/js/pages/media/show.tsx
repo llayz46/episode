@@ -20,6 +20,7 @@ import {
     season as mediaSeason,
     watchlist as addToWatchlist,
 } from '@/routes/media';
+import { show as personShow } from '@/routes/people';
 import type { Media, Season } from '@/types/media';
 
 type MediaShowProps = {
@@ -316,9 +317,13 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                     <ScrollArea className="mt-5 h-auto w-full">
                                         <div className="flex w-max gap-3 pb-4">
                                             {media.cast.map((member) => (
-                                                <article
+                                                <Link
                                                     className="group relative w-28 shrink-0 overflow-hidden rounded-lg bg-zinc-900"
-                                                    key={member.name}
+                                                    href={personShow(
+                                                        member.slug,
+                                                    )}
+                                                    key={member.tmdbId}
+                                                    prefetch
                                                 >
                                                     <div className="relative aspect-3/4">
                                                         <img
@@ -335,7 +340,7 @@ export default function MediaShow({ media }: MediaShowProps): ReactElement {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                </article>
+                                                </Link>
                                             ))}
                                         </div>
                                     </ScrollArea>

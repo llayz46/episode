@@ -2,6 +2,8 @@
 
 use App\Models\Episode;
 use App\Models\Media;
+use App\Models\MediaCredit;
+use App\Models\Person;
 use App\Models\Season;
 use App\Models\User;
 use App\Models\UserEpisode;
@@ -61,6 +63,19 @@ test('authenticated users can view a film page', function () {
             ->component('media/show')
             ->where('media.kind', 'movie')
             ->where('media.title', 'The Thursday Murder Club'));
+});
+
+test('media pages exclude cast members without a profile slug', function () {
+    $series = Media::factory()->create(['type' => 'tv']);
+    $person = Person::factory()->create(['slug' => null]);
+    MediaCredit::factory()->for($series)->for($person)->create([
+        'credit_type' => 'cast',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('media.show', $series->slug))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('media.cast', 0));
 });
 
 test('a user can add a film to their watchlist', function () {

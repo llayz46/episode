@@ -101,7 +101,7 @@ export function Home({
 
                             <div className="relative mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
                                 <AppLogo className="text-white" />
-                                <div className="mt-auto flex max-w-xl flex-col gap-6 pb-28 sm:pb-36">
+                                <div className="mt-auto flex max-w-xl flex-col gap-6 pb-0 sm:pb-36">
                                     {featured ? (
                                         <>
                                             <div className="flex flex-col gap-3">
@@ -211,7 +211,7 @@ export function Home({
                                     )}
                                 </div>
                                 {trackedMedia.length > 0 && (
-                                    <div className="absolute right-5 bottom-5 left-5 flex gap-3 overflow-x-auto sm:right-8 sm:bottom-8 sm:left-auto sm:w-[34rem] lg:right-12 lg:bottom-10">
+                                    <div className="relative mt-6 flex gap-3 overflow-x-auto pb-5 sm:absolute sm:right-8 sm:bottom-8 sm:left-auto sm:mt-0 sm:w-[34rem] sm:pb-0 lg:right-12 lg:bottom-10">
                                         {trackedMedia.map((show) => (
                                             <button
                                                 className="w-36 shrink-0 rounded-2xl border border-white/10 bg-black/55 p-2 text-left text-white backdrop-blur-xl transition hover:bg-black/70"

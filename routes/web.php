@@ -7,6 +7,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaImportController;
 use App\Http\Controllers\MediaLibraryController;
+use App\Http\Controllers\PersonController;
 use App\Http\Controllers\TmdbSearchController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('episodes.watched');
     Route::post('episodes/{episode}/rating', [EpisodeProgressController::class, 'rate'])
         ->name('episodes.rating');
+    Route::get('people/{person:slug}', [PersonController::class, 'show'])->name('people.show');
     Route::get('media/{slug}/seasons/{season}/episodes/{episode}', [MediaController::class, 'episode'])
         ->whereNumber(['season', 'episode'])
         ->name('media.episode');

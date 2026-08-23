@@ -283,19 +283,24 @@ class MediaController extends Controller
     }
 
     /**
-     * @return array<int, array{image: string, name: string, role: string}>
+     * @return array<int, array{image: string, name: string, role: string, slug: string, tmdbId: int}>
      */
     private function cast(Media $media): array
     {
         return $media->credits
             ->where('credit_type', 'cast')
             ->sortBy('display_order')
-            ->filter(fn (MediaCredit $credit): bool => $credit->person?->profile_path !== null)
+            ->filter(
+                fn (MediaCredit $credit): bool => $credit->person?->profile_path !== null
+                    && $credit->person->slug !== null,
+            )
             ->take(12)
             ->map(fn (MediaCredit $credit): array => [
                 'image' => $this->imageUrl($credit->person->profile_path, 'w342') ?? '',
                 'name' => $credit->person->name,
                 'role' => $credit->character_name ?? 'Distribution',
+                'slug' => $credit->person->slug,
+                'tmdbId' => $credit->person->tmdb_id,
             ])
             ->values()
             ->all();

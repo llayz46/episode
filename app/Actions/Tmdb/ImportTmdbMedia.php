@@ -155,6 +155,10 @@ class ImportTmdbMedia
                 ['tmdb_id' => (int) $creditPayload['id']],
                 [
                     'name' => (string) $creditPayload['name'],
+                    'slug' => $this->personSlug(
+                        (string) $creditPayload['name'],
+                        (int) $creditPayload['id'],
+                    ),
                     'profile_path' => $this->nullableString($creditPayload['profile_path'] ?? null),
                     'known_for_department' => $this->nullableString($creditPayload['known_for_department'] ?? null),
                 ],
@@ -174,6 +178,25 @@ class ImportTmdbMedia
                 ],
             );
         }
+    }
+
+    private function personSlug(string $name, int $tmdbId): string
+    {
+        $baseSlug = Str::slug($name) ?: 'person';
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        while (Person::query()
+            ->where('slug', $slug)
+            ->where('tmdb_id', '!=', $tmdbId)
+            ->exists()) {
+            $slug = $suffix === 1
+                ? "{$baseSlug}-{$tmdbId}"
+                : "{$baseSlug}-{$tmdbId}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 
     /**

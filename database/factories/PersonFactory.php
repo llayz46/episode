@@ -20,6 +20,7 @@ class PersonFactory extends Factory
         return [
             'tmdb_id' => fake()->unique()->numberBetween(1, 9_999_999),
             'name' => fake()->name(),
+            'slug' => fake()->unique()->slug(),
             'profile_path' => '/person.jpg',
             'known_for_department' => 'Acting',
         ];

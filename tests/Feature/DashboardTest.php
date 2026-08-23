@@ -157,6 +157,12 @@ test('the home page derives binge-ready media and upcoming releases from the use
         'aired_on' => now()->subDay(),
         'number' => 2,
     ]);
+    $releasedFilm = Media::factory()->create([
+        'released_on' => now()->subDay(),
+        'slug' => 'the-fall-guy-746036',
+        'title' => 'The Fall Guy',
+        'type' => 'movie',
+    ]);
     $upcomingFilm = Media::factory()->create([
         'released_on' => now()->addDays(3),
         'slug' => 'the-thursday-murder-club-502356',
@@ -171,6 +177,9 @@ test('the home page derives binge-ready media and upcoming releases from the use
         'rating' => 9,
         'status' => 'watchlist',
     ]);
+    UserMedia::factory()->for($user)->for($releasedFilm)->create([
+        'status' => 'watchlist',
+    ]);
     UserMedia::factory()->for($user)->for($upcomingFilm)->create([
         'status' => 'following',
     ]);
@@ -178,6 +187,7 @@ test('the home page derives binge-ready media and upcoming releases from the use
     $this->actingAs($user)
         ->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
+            ->has('bingeReady', 1)
             ->where('bingeReady.0.title', 'Severance')
             ->where('bingeReady.0.userRating', 9)
             ->where('upcomingReleases.0.title', 'Silo')

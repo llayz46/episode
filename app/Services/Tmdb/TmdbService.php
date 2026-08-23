@@ -80,6 +80,18 @@ final class TmdbService
     }
 
     /**
+     * Récupère les détails et la filmographie d'une personne depuis TMDB.
+     *
+     * @return array<string, mixed>
+     */
+    public function person(int $tmdbId): array
+    {
+        return $this->get("person/{$tmdbId}", [
+            'append_to_response' => 'combined_credits',
+        ]);
+    }
+
+    /**
      * Récupère le casting et l'équipe d'un film depuis TMDB.
      *
      * @return array<string, mixed>

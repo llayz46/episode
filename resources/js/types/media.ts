@@ -2,6 +2,8 @@ export type CastMember = {
     image: string;
     name: string;
     role: string;
+    slug: string;
+    tmdbId: number;
 };
 
 export type Episode = {

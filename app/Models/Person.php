@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'tmdb_id',
     'name',
+    'slug',
     'profile_path',
     'known_for_department',
 ])]

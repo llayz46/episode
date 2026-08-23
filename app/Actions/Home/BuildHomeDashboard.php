@@ -164,8 +164,8 @@ class BuildHomeDashboard
 
     private function isBingeReady(Media $media, CarbonImmutable $today): bool
     {
-        if ($media->type === 'movie') {
-            return $media->released_on?->lessThanOrEqualTo($today) ?? false;
+        if ($media->type !== 'tv') {
+            return false;
         }
 
         $season = $this->currentSeason($media);

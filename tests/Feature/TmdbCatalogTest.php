@@ -174,7 +174,8 @@ test('it imports a series with its seasons and episodes from TMDB', function () 
         ->and($media->networks)->toBe(['Apple TV'])
         ->and($season->media->is($media))->toBeTrue()
         ->and($episode->season->is($season))->toBeTrue()
-        ->and($credit->person->is($person))->toBeTrue();
+        ->and($credit->person->is($person))->toBeTrue()
+        ->and($person->slug)->toBe('rebecca-ferguson');
 
     $this->actingAs(User::factory()->create())
         ->get(route('media.show', $media->slug))
@@ -185,6 +186,8 @@ test('it imports a series with its seasons and episodes from TMDB', function () 
             ->where('media.platform', 'Apple TV')
             ->where('media.cast.0.name', 'Rebecca Ferguson')
             ->where('media.cast.0.role', 'Juliette Nichols')
+            ->where('media.cast.0.slug', 'rebecca-ferguson')
+            ->where('media.cast.0.tmdbId', 287)
             ->where('media.seasons.0.episodeCount', 1)
             ->where('media.episodeNavigation.0.code', 'S01E01'));
 });
